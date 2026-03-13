@@ -178,6 +178,53 @@
     .divider { width: 100%; height: 1px; background: #2a2a4e; }
     .small { font-size: .8rem; color: #555; text-align: center; }
     .row { display: flex; gap: 10px; width: 100%; }
+
+    /* Are you sure modal */
+    #confirm-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    #confirm-modal.hidden { display: none; }
+    .modal-box {
+      background: #16213e;
+      border: 2px solid #e94560;
+      border-radius: 16px;
+      padding: 28px 24px;
+      max-width: 320px;
+      width: 90%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .modal-box h3 { font-size: 1.2rem; color: #eee; }
+    .modal-box p  { font-size: .95rem; color: #aaa; margin: 0; }
+    .modal-btns   { display: flex; gap: 10px; }
+    .modal-btns .btn { flex: 1; }
+
+    /* Starting player overlay */
+    #start-overlay {
+      position: fixed;
+      inset: 0;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 10;
+      cursor: pointer;
+    }
+    #start-overlay.hidden { display: none; }
+    #start-overlay .so-label { font-size: .9rem; color: #555; text-transform: uppercase; letter-spacing: 1px; }
+    #start-overlay .so-name  { font-size: 2rem; font-weight: bold; color: #e94560; }
+    #start-overlay .so-sub   { font-size: .9rem; color: #aaa; }
+    #start-overlay .so-tap   { font-size: .8rem; color: #333; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -256,59 +303,80 @@
   <p class="cover-tap">(andere wegschauen!)</p>
 </div>
 
+<!-- Starting player overlay -->
+<div id="start-overlay" class="hidden">
+  <div class="so-label">Fängt an:</div>
+  <div class="so-name" id="so-name"></div>
+  <div class="so-sub">Du startest die Diskussion!</div>
+  <div class="so-tap">Tippen um weiterzumachen</div>
+</div>
+
+<!-- Are you sure modal -->
+<div id="confirm-modal" class="hidden">
+  <div class="modal-box">
+    <h3>Sicher?</h3>
+    <p id="confirm-text"></p>
+    <div class="modal-btns">
+      <button class="btn btn-gray" id="confirm-cancel">Abbrechen</button>
+      <button class="btn btn-red"  id="confirm-ok">Ja, rauswerfen</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Word list: [real word, impostor hint] ──
+// Hint = same broad category, but far enough to not give it away
 const WORDS = [
-  ["Pizza", "Pasta"],
-  ["Hund", "Wolf"],
-  ["Strand", "See"],
-  ["Apfel", "Birne"],
-  ["Auto", "Motorrad"],
-  ["Fußball", "Basketball"],
-  ["Gitarre", "Geige"],
-  ["Sonne", "Mond"],
-  ["Krankenhaus", "Arztpraxis"],
-  ["Flugzeug", "Hubschrauber"],
-  ["Koffer", "Rucksack"],
-  ["Schwimmbad", "Badewanne"],
-  ["Feuer", "Lagerfeuer"],
-  ["Schloss", "Burg"],
-  ["Katze", "Luchs"],
-  ["Kaffee", "Tee"],
-  ["Schokolade", "Karamell"],
-  ["Brücke", "Tunnel"],
-  ["Regen", "Schnee"],
-  ["Bibliothek", "Buchhandlung"],
-  ["Fahrrad", "Roller"],
-  ["Kühlschrank", "Gefrierfach"],
-  ["Lehrer", "Professor"],
-  ["Hai", "Delfin"],
-  ["Wüste", "Savanne"],
-  ["Kerze", "Taschenlampe"],
-  ["Spiegel", "Fenster"],
-  ["Socke", "Strumpf"],
-  ["Bäcker", "Koch"],
-  ["Trampolin", "Schaukel"],
-  ["Zug", "U-Bahn"],
-  ["Rucksack", "Handtasche"],
-  ["Käse", "Butter"],
-  ["Vulkan", "Berg"],
-  ["Pinguin", "Eisbär"],
-  ["Ballon", "Drachen"],
-  ["Schlange", "Eidechse"],
-  ["Brunnen", "Quelle"],
-  ["Sofa", "Sessel"],
-  ["Geburtstag", "Hochzeit"],
-  ["Leuchtturm", "Windmühle"],
-  ["Kaktus", "Aloe Vera"],
-  ["Boxen", "Kickboxen"],
-  ["Dschungel", "Regenwald"],
-  ["Münze", "Geldschein"],
-  ["Löffel", "Gabel"],
-  ["Schwert", "Messer"],
-  ["Ritter", "Soldat"],
-  ["Biene", "Wespe"],
-  ["Kino", "Theater"],
+  ["Pizza",        "Sushi"],
+  ["Hund",         "Pferd"],
+  ["Strand",       "Wald"],
+  ["Apfel",        "Karotte"],
+  ["Auto",         "Schiff"],
+  ["Fußball",      "Tennis"],
+  ["Gitarre",      "Klavier"],
+  ["Sonne",        "Stern"],
+  ["Krankenhaus",  "Schule"],
+  ["Flugzeug",     "Fahrrad"],
+  ["Koffer",       "Brieftasche"],
+  ["Schwimmbad",   "Sauna"],
+  ["Feuer",        "Wasser"],
+  ["Schloss",      "Zelt"],
+  ["Katze",        "Vogel"],
+  ["Kaffee",       "Saft"],
+  ["Schokolade",   "Salz"],
+  ["Brücke",       "Leiter"],
+  ["Regen",        "Wind"],
+  ["Bibliothek",   "Supermarkt"],
+  ["Fahrrad",      "Boot"],
+  ["Kühlschrank",  "Ofen"],
+  ["Lehrer",       "Arzt"],
+  ["Hai",          "Adler"],
+  ["Wüste",        "Gletscher"],
+  ["Kerze",        "Blitz"],
+  ["Spiegel",      "Gemälde"],
+  ["Socke",        "Handschuh"],
+  ["Bäcker",       "Friseur"],
+  ["Trampolin",    "Rutsche"],
+  ["Zug",          "Straßenbahn"],
+  ["Käse",         "Marmelade"],
+  ["Vulkan",       "Geysir"],
+  ["Pinguin",      "Eisbär"],
+  ["Ballon",       "Drachen"],
+  ["Schlange",     "Wurm"],
+  ["Sofa",         "Bett"],
+  ["Geburtstag",   "Silvester"],
+  ["Leuchtturm",   "Kirche"],
+  ["Kaktus",       "Pilz"],
+  ["Boxen",        "Schwimmen"],
+  ["Dschungel",    "Tundra"],
+  ["Münze",        "Briefmarke"],
+  ["Löffel",       "Schere"],
+  ["Schwert",      "Keule"],
+  ["Ritter",       "Pirat"],
+  ["Biene",        "Ameise"],
+  ["Kino",         "Stadion"],
+  ["Schneemann",   "Sandburg"],
+  ["Diamant",      "Muschel"],
 ];
 
 // ── State ──
@@ -386,9 +454,16 @@ $('start-btn').onclick = function() {
 function showCover() {
   const alive = players.filter(p => !eliminated.includes(p));
   if (revealIndex >= alive.length) {
-    // All revealed → discussion
-    show('screen-discuss');
-    $('discuss-players').textContent = alive.join(' · ');
+    // All revealed → show random starting player
+    const starter = alive[Math.floor(Math.random() * alive.length)];
+    $('so-name').textContent = starter;
+    const overlay = $('start-overlay');
+    overlay.classList.remove('hidden');
+    overlay.onclick = function() {
+      overlay.classList.add('hidden');
+      show('screen-discuss');
+      $('discuss-players').textContent = alive.join(' · ');
+    };
     return;
   }
   const name = alive[revealIndex];
@@ -431,6 +506,10 @@ $('next-reveal-btn').onclick = function() {
 // ── Voting ──
 $('go-vote-btn').onclick = function() {
   show('screen-vote');
+  buildVoteGrid();
+};
+
+function buildVoteGrid() {
   const alive = players.filter(p => !eliminated.includes(p));
   const grid = $('vote-grid');
   grid.innerHTML = '';
@@ -438,9 +517,29 @@ $('go-vote-btn').onclick = function() {
     const card = document.createElement('div');
     card.className = 'vote-card';
     card.textContent = name;
-    card.onclick = () => ejectPlayer(name);
+    card.onclick = () => confirmEject(name);
     grid.appendChild(card);
   });
+}
+
+// ── Confirm modal ──
+let pendingEject = null;
+
+function confirmEject(name) {
+  pendingEject = name;
+  $('confirm-text').textContent = `Willst du wirklich ${name} rauswerfen?`;
+  $('confirm-modal').classList.remove('hidden');
+}
+
+$('confirm-cancel').onclick = function() {
+  $('confirm-modal').classList.add('hidden');
+  pendingEject = null;
+};
+
+$('confirm-ok').onclick = function() {
+  $('confirm-modal').classList.add('hidden');
+  if (pendingEject) ejectPlayer(pendingEject);
+  pendingEject = null;
 };
 
 // ── Eject ──
@@ -459,29 +558,25 @@ function ejectPlayer(name) {
     $('eject-emoji').textContent = '😬';
     $('eject-title').textContent = `${name} war unschuldig!`;
     $('eject-title').className = 'result-title lose';
-    $('eject-info').textContent = `${name} war ein Crewmate...\n\nDer Impostor (${impostorName}) ist noch unter euch!`;
+    $('eject-info').textContent = `${name} war ein Crewmate...\n\nDer Impostor (${impostorName}) ist noch unter euch!\nDas Wort bleibt dasselbe — weiter diskutieren!`;
     eliminated.push(name);
-    $('next-round-btn').style.display = '';
 
     // Check if impostor wins (only 1 crewmate left besides impostor)
     const aliveAfter = players.filter(p => !eliminated.includes(p));
     if (aliveAfter.length <= 2) {
       $('next-round-btn').style.display = 'none';
       setTimeout(() => triggerGameOver('imp'), 100);
+    } else {
+      $('next-round-btn').style.display = '';
     }
   }
 }
 
+// Continue same round (same word, no re-reveal)
 $('next-round-btn').onclick = function() {
-  roundNum++;
-  // New round: new word, same players minus eliminated
-  const pair = WORDS[Math.floor(Math.random() * WORDS.length)];
-  currentWord = pair[0];
-  currentHint = pair[1];
+  show('screen-discuss');
   const alive = players.filter(p => !eliminated.includes(p));
-  impostorName = alive[Math.floor(Math.random() * alive.length)];
-  revealIndex = 0;
-  showCover();
+  $('discuss-players').textContent = alive.join(' · ');
 };
 
 // ── Game Over ──
