@@ -3,204 +3,302 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Impostor</title>
+  <title>Impostor</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --bg:      #0c0c0e;
+      --surface: #141416;
+      --border:  #222226;
+      --text:    #f0f0f0;
+      --muted:   #555560;
+      --dim:     #30303a;
+      --accent:  #ff3b5c;
+      --green:   #00c896;
+      --blue:    #3d8ef8;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #1a1a2e;
-      color: #eee;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Language toggle */
+    /* ── Lang toggle ── */
     #lang-toggle {
       position: fixed;
-      top: 14px;
-      right: 14px;
+      top: 20px;
+      right: 20px;
       z-index: 30;
-      background: #16213e;
-      border: 1px solid #444;
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: .8rem;
-      font-weight: bold;
-      color: #aaa;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--muted);
       cursor: pointer;
-      letter-spacing: 1px;
-      transition: border-color .2s;
+      letter-spacing: .08em;
+      transition: color .2s, border-color .2s;
+      font-family: inherit;
     }
-    #lang-toggle:hover { border-color: #e94560; color: #eee; }
+    #lang-toggle:hover { color: var(--text); border-color: var(--dim); }
 
+    /* ── Screens ── */
     .screen {
       display: none;
       flex-direction: column;
       align-items: center;
-      gap: 20px;
+      gap: 16px;
       width: 100%;
-      max-width: 480px;
-      padding: 24px 16px;
+      max-width: 420px;
+      padding: 32px 20px;
     }
     .screen.active { display: flex; }
 
-    h1 { font-size: 2.4rem; color: #e94560; letter-spacing: 2px; text-transform: uppercase; }
-    h2 { font-size: 1.4rem; color: #a8dadc; }
-    p  { text-align: center; line-height: 1.6; color: #ccc; }
+    /* ── Typography ── */
+    .title {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--text);
+    }
+    .title span { color: var(--accent); }
+    .subtitle {
+      font-size: .95rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.55;
+      font-weight: 400;
+    }
+    .label {
+      font-size: .7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+    }
 
+    /* ── Input ── */
+    .input-row { display: flex; gap: 8px; width: 100%; }
     input[type="text"] {
-      width: 100%;
-      padding: 12px 16px;
+      flex: 1;
+      padding: 13px 16px;
       border-radius: 10px;
-      border: 2px solid #333;
-      background: #16213e;
-      color: #eee;
-      font-size: 1rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: .95rem;
+      font-family: inherit;
       outline: none;
       transition: border-color .2s;
     }
-    input[type="text"]:focus { border-color: #e94560; }
+    input[type="text"]:focus { border-color: var(--dim); }
+    input::placeholder { color: var(--muted); }
 
+    /* ── Buttons ── */
     .btn {
-      padding: 12px 32px;
+      padding: 13px 20px;
       border-radius: 10px;
       border: none;
-      font-size: 1rem;
-      font-weight: bold;
+      font-size: .95rem;
+      font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
-      transition: transform .1s, opacity .2s;
       width: 100%;
+      transition: opacity .15s, transform .1s;
+      letter-spacing: -.01em;
     }
-    .btn:active { transform: scale(.97); }
-    .btn-red   { background: #e94560; color: #fff; }
-    .btn-blue  { background: #457b9d; color: #fff; }
-    .btn-green { background: #2a9d8f; color: #fff; }
-    .btn-gray  { background: #2a2a3e; color: #aaa; border: 1px solid #444; }
-    .btn:disabled { opacity: .35; cursor: default; }
+    .btn:active  { transform: scale(.98); }
+    .btn:disabled { opacity: .25; cursor: default; }
 
-    /* Player list */
+    .btn-primary  { background: var(--accent); color: #fff; }
+    .btn-green    { background: var(--green);  color: #0c0c0e; }
+    .btn-ghost    {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--dim); color: var(--text); }
+    .btn-icon {
+      width: auto;
+      padding: 13px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 1.1rem;
+    }
+
+    /* ── Player list ── */
     #player-list {
       width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      max-height: 240px;
+      gap: 6px;
+      max-height: 220px;
       overflow-y: auto;
     }
     .player-tag {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #16213e;
-      border-radius: 8px;
-      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: .9rem;
+      font-weight: 500;
     }
     .player-tag button {
       background: none; border: none;
-      color: #e94560; font-size: 1.1rem; cursor: pointer;
+      color: var(--muted); font-size: 1rem;
+      cursor: pointer; line-height: 1;
+      transition: color .15s;
     }
+    .player-tag button:hover { color: var(--accent); }
 
-    /* Role card */
+    /* ── Role card ── */
     .role-card {
       width: 100%;
-      background: #16213e;
+      background: var(--surface);
       border-radius: 16px;
-      padding: 36px 24px;
+      padding: 40px 28px;
       text-align: center;
-      border: 2px solid #2a2a4e;
     }
-    .role-card .player-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 4px; }
-    .role-card .sub { font-size: .85rem; color: #555; margin-bottom: 28px; }
-
-    .word-label { font-size: .85rem; color: #777; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .role-card .pname {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 32px;
+      color: var(--text);
+    }
     .big-word {
-      font-size: 2.8rem;
-      font-weight: bold;
-      letter-spacing: 2px;
-      line-height: 1.1;
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      line-height: 1;
+      margin-bottom: 8px;
     }
-    .big-word.real     { color: #a8dadc; }
-    .big-word.impostor { color: #e94560; }
-
-    .role-badge {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 5px 16px;
+    .big-word.real     { color: var(--text); }
+    .big-word.impostor { color: var(--accent); }
+    .word-note {
+      font-size: .78rem;
+      color: var(--muted);
+      font-weight: 400;
+      margin-bottom: 28px;
+    }
+    .role-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
       border-radius: 20px;
-      font-size: .8rem;
-      font-weight: bold;
+      font-size: .72rem;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: .08em;
     }
-    .role-badge.crewmate { background: #1a3a38; color: #2a9d8f; }
-    .role-badge.impostor { background: #3a1a20; color: #e94560; }
+    .role-pill.crewmate { background: rgba(0,200,150,.1); color: var(--green); }
+    .role-pill.impostor { background: rgba(255,59,92,.1);  color: var(--accent); }
 
-    /* Cover */
-    #cover {
+    /* ── Cover / overlays ── */
+    .overlay {
       position: fixed;
       inset: 0;
-      background: #1a1a2e;
+      background: var(--bg);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 14px;
+      gap: 10px;
       z-index: 10;
       cursor: pointer;
       user-select: none;
     }
-    #cover.hidden { display: none; }
-    #cover .cover-name { font-size: 1.5rem; font-weight: bold; color: #a8dadc; }
-    #cover .cover-hint { font-size: .9rem; color: #555; }
-    #cover .cover-tap  { font-size: .8rem; color: #333; margin-top: 8px; }
+    .overlay.hidden { display: none; }
+    .overlay .ov-name {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.02em;
+    }
+    .overlay .ov-hint { font-size: .85rem; color: var(--muted); margin-top: 4px; }
+    .overlay .ov-tap  { font-size: .72rem; color: var(--dim);   margin-top: 16px; }
 
-    /* Voting */
+    /* ── Discuss screen ── */
+    .discuss-note {
+      font-size: .82rem;
+      color: var(--accent);
+      text-align: center;
+      font-weight: 500;
+    }
+    .players-row {
+      font-size: .8rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ── Vote grid ── */
     #vote-grid {
       width: 100%;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
     }
     .vote-card {
-      background: #16213e;
-      border: 2px solid #2a2a4e;
-      border-radius: 14px;
-      padding: 20px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 10px;
       text-align: center;
       cursor: pointer;
-      transition: border-color .15s, background .15s, transform .1s;
-      font-size: 1.05rem;
-      font-weight: bold;
+      font-size: .95rem;
+      font-weight: 600;
+      transition: background .15s, border-color .15s, transform .1s;
     }
-    .vote-card:active { transform: scale(.95); }
-    .vote-card:hover  { border-color: #e94560; background: #1e1e3e; }
+    .vote-card:hover  { background: #1e1e22; border-color: var(--dim); }
+    .vote-card:active { transform: scale(.96); }
 
-    /* Eject / Result */
-    .result-box {
+    /* ── Result cards ── */
+    .result-card {
       width: 100%;
-      background: #16213e;
+      background: var(--surface);
       border-radius: 16px;
-      padding: 32px 24px;
+      padding: 36px 24px;
       text-align: center;
-      border: 2px solid #2a2a4e;
     }
-    .result-emoji { font-size: 4rem; margin-bottom: 12px; }
-    .result-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
-    .result-title.win  { color: #2a9d8f; }
-    .result-title.lose { color: #e94560; }
-    .result-info { font-size: .9rem; color: #aaa; line-height: 1.7; white-space: pre-line; }
+    .result-icon {
+      font-size: 3.2rem;
+      margin-bottom: 16px;
+    }
+    .result-head {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: 12px;
+    }
+    .result-head.win  { color: var(--green); }
+    .result-head.lose { color: var(--accent); }
+    .result-body {
+      font-size: .88rem;
+      color: var(--muted);
+      line-height: 1.7;
+      white-space: pre-line;
+    }
 
-    .divider { width: 100%; height: 1px; background: #2a2a4e; }
-    .small { font-size: .8rem; color: #555; text-align: center; }
-
-    /* Are you sure modal */
+    /* ── Confirm modal ── */
     #confirm-modal {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.75);
+      background: rgba(0,0,0,.8);
+      backdrop-filter: blur(4px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -208,136 +306,143 @@
     }
     #confirm-modal.hidden { display: none; }
     .modal-box {
-      background: #16213e;
-      border: 2px solid #e94560;
-      border-radius: 16px;
-      padding: 28px 24px;
-      max-width: 340px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px 22px;
+      max-width: 320px;
       width: 90%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .modal-box .modal-title {
+      font-size: 1.05rem;
+      font-weight: 700;
       text-align: center;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
     }
-    .modal-box h3 { font-size: 1.2rem; color: #eee; }
-    .modal-box p  { font-size: .95rem; color: #aaa; margin: 0; }
-    /* buttons stacked vertically */
-    .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+    .modal-box .modal-sub {
+      font-size: .88rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+    .modal-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 
-    /* Starting player overlay */
-    #start-overlay {
-      position: fixed;
-      inset: 0;
-      background: #1a1a2e;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      z-index: 10;
-      cursor: pointer;
+    /* ── Divider ── */
+    .divider { width: 100%; height: 1px; background: var(--border); }
+
+    /* ── Start overlay extras ── */
+    .so-badge {
+      font-size: .7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--muted);
+      margin-bottom: 4px;
     }
-    #start-overlay.hidden { display: none; }
-    #start-overlay .so-label { font-size: .9rem; color: #555; text-transform: uppercase; letter-spacing: 1px; }
-    #start-overlay .so-name  { font-size: 2rem; font-weight: bold; color: #e94560; }
-    #start-overlay .so-sub   { font-size: .9rem; color: #aaa; }
-    #start-overlay .so-tap   { font-size: .8rem; color: #333; margin-top: 8px; }
   </style>
 </head>
 <body>
 
 <button id="lang-toggle">DE</button>
 
-<!-- ── SCREEN 1: Setup ── -->
+<!-- ── Setup ── -->
 <div class="screen active" id="screen-setup">
-  <h1>Impostor</h1>
-  <p data-t="setup-desc"></p>
+  <div style="width:100%;margin-bottom:8px;">
+    <div class="title">My <span>Impostor</span></div>
+  </div>
+  <p class="subtitle" data-t="setup-desc"></p>
+  <div class="divider"></div>
 
-  <div style="width:100%;display:flex;gap:8px;">
+  <div class="input-row">
     <input type="text" id="name-input" data-t-placeholder="player-placeholder" maxlength="20" />
-    <button class="btn btn-red" style="width:auto;padding:12px 20px;" id="add-btn">+</button>
+    <button class="btn btn-icon" id="add-btn">+</button>
   </div>
   <div id="player-list"></div>
 
-  <button class="btn btn-green" id="start-btn" disabled data-t="start-btn"></button>
-  <p class="small" data-t="min-players"></p>
+  <button class="btn btn-primary" id="start-btn" disabled data-t="start-btn"></button>
+  <p class="label" data-t="min-players"></p>
 </div>
 
-<!-- ── SCREEN 2: Role Reveal ── -->
+<!-- ── Role Reveal ── -->
 <div class="screen" id="screen-reveal">
   <div class="role-card">
-    <div class="player-name" id="reveal-name"></div>
-    <div class="sub" id="reveal-sub"></div>
-    <div class="word-label" id="reveal-word-label"></div>
+    <div class="pname" id="reveal-name"></div>
+    <div class="word-note" id="reveal-word-label"></div>
     <div class="big-word" id="reveal-word"></div>
-    <div class="role-badge" id="reveal-badge"></div>
+    <div style="height:20px;"></div>
+    <div class="role-pill" id="reveal-badge"></div>
   </div>
-  <button class="btn btn-blue" id="next-reveal-btn" data-t="next-btn"></button>
-  <p class="small" data-t="reveal-hint"></p>
+  <button class="btn btn-ghost" id="next-reveal-btn" data-t="next-btn"></button>
+  <p class="label" data-t="reveal-hint"></p>
 </div>
 
-<!-- ── SCREEN 3: Discussion ── -->
+<!-- ── Discussion ── -->
 <div class="screen" id="screen-discuss">
-  <h2 data-t="discuss-title"></h2>
-  <p data-t="discuss-desc"></p>
-  <p style="color:#e94560;font-size:.9rem;" data-t="discuss-imp"></p>
+  <div style="width:100%;">
+    <div class="title" data-t="discuss-title"></div>
+  </div>
+  <p class="subtitle" data-t="discuss-desc"></p>
+  <p class="discuss-note" data-t="discuss-imp"></p>
   <div class="divider"></div>
-  <p class="small" id="discuss-players"></p>
-  <button class="btn btn-red" id="go-vote-btn" data-t="vote-btn"></button>
+  <p class="players-row" id="discuss-players"></p>
+  <button class="btn btn-primary" id="go-vote-btn" data-t="vote-btn"></button>
 </div>
 
-<!-- ── SCREEN 4: Voting ── -->
+<!-- ── Voting ── -->
 <div class="screen" id="screen-vote">
-  <h2 data-t="vote-title"></h2>
-  <p data-t="vote-desc"></p>
+  <div style="width:100%;">
+    <div class="title" data-t="vote-title"></div>
+  </div>
+  <p class="subtitle" data-t="vote-desc"></p>
   <div id="vote-grid"></div>
 </div>
 
-<!-- ── SCREEN 5: Eject Result ── -->
+<!-- ── Eject Result ── -->
 <div class="screen" id="screen-eject">
-  <div class="result-box">
-    <div class="result-emoji" id="eject-emoji"></div>
-    <div class="result-title" id="eject-title"></div>
-    <div class="result-info" id="eject-info"></div>
+  <div class="result-card">
+    <div class="result-icon" id="eject-emoji"></div>
+    <div class="result-head" id="eject-title"></div>
+    <div class="result-body" id="eject-info"></div>
   </div>
-  <button class="btn btn-green" id="next-round-btn" data-t="continue-btn"></button>
-  <button class="btn btn-gray"  id="new-game-btn2" data-t="new-game-btn"></button>
+  <button class="btn btn-green"  id="next-round-btn" data-t="continue-btn"></button>
+  <button class="btn btn-ghost"  id="new-game-btn2"  data-t="new-game-btn"></button>
 </div>
 
-<!-- ── SCREEN 6: Game Over ── -->
+<!-- ── Game Over ── -->
 <div class="screen" id="screen-gameover">
-  <h1>Game Over</h1>
-  <div class="result-box">
-    <div class="result-emoji" id="go-emoji"></div>
-    <div class="result-title" id="go-title"></div>
-    <div class="result-info" id="go-info"></div>
+  <div class="result-card">
+    <div class="result-icon" id="go-emoji"></div>
+    <div class="result-head" id="go-title"></div>
+    <div class="result-body" id="go-info"></div>
   </div>
-  <button class="btn btn-green" id="new-game-btn" data-t="new-game-btn"></button>
+  <button class="btn btn-primary" id="new-game-btn" data-t="new-game-btn"></button>
 </div>
 
-<!-- Cover between reveals -->
-<div id="cover" class="hidden">
-  <div class="cover-name" id="cover-name"></div>
-  <p class="cover-hint" data-t="cover-hint"></p>
-  <p class="cover-tap" data-t="cover-tap"></p>
+<!-- Cover -->
+<div class="overlay hidden" id="cover">
+  <div class="ov-name" id="cover-name"></div>
+  <div class="ov-hint" data-t="cover-hint"></div>
+  <div class="ov-tap"  data-t="cover-tap"></div>
 </div>
 
-<!-- Starting player overlay -->
-<div id="start-overlay" class="hidden">
-  <div class="so-label" data-t="starts-label"></div>
-  <div class="so-name" id="so-name"></div>
-  <div class="so-sub" data-t="starts-sub"></div>
-  <div class="so-tap" data-t="cover-tap"></div>
+<!-- Start overlay -->
+<div class="overlay hidden" id="start-overlay">
+  <div class="so-badge" data-t="starts-label"></div>
+  <div class="ov-name" id="so-name"></div>
+  <div class="ov-hint" data-t="starts-sub"></div>
+  <div class="ov-tap"  data-t="cover-tap"></div>
 </div>
 
-<!-- Are you sure modal -->
+<!-- Confirm modal -->
 <div id="confirm-modal" class="hidden">
   <div class="modal-box">
-    <h3 data-t="confirm-title"></h3>
-    <p id="confirm-text"></p>
+    <div class="modal-title" data-t="confirm-title"></div>
+    <div class="modal-sub" id="confirm-text"></div>
     <div class="modal-btns">
-      <button class="btn btn-red"  id="confirm-ok"     data-t="confirm-ok"></button>
-      <button class="btn btn-gray" id="confirm-cancel" data-t="confirm-cancel"></button>
+      <button class="btn btn-primary" id="confirm-ok"     data-t="confirm-ok"></button>
+      <button class="btn btn-ghost"   id="confirm-cancel" data-t="confirm-cancel"></button>
     </div>
   </div>
 </div>
@@ -346,203 +451,123 @@
 // ── Translations ──
 const T = {
   es: {
-    "setup-desc":         "Todos los jugadores reciben la misma palabra — excepto el impostor, que solo recibe una pista.",
-    "player-placeholder": "Nombre del jugador...",
-    "start-btn":          "Iniciar juego",
-    "min-players":        "Se necesitan mínimo 3 jugadores.",
-    "next-btn":           "Siguiente →",
-    "reveal-hint":        "¡No le muestres la palabra a nadie!",
-    "reveal-sub":         "Tu palabra:",
-    "reveal-crewmate-label": "La palabra real:",
-    "reveal-impostor-label": "⚠ ¡Eres el impostor! Tu pista:",
-    "badge-crewmate":     "👷 Crewmate",
-    "badge-impostor":     "🔪 Impostor",
-    "discuss-title":      "Discusión",
-    "discuss-desc":       "Cada jugador describe la palabra con una frase — sin decirla directamente.",
-    "discuss-imp":        "El impostor debe participar sin saber la palabra real.",
-    "vote-btn":           "Iniciar votación",
-    "vote-title":         "Votación",
-    "vote-desc":          "¿Quién es el impostor? Toca al sospechoso.",
-    "continue-btn":       "Continuar ronda",
-    "new-game-btn":       "Nuevo juego",
-    "cover-hint":         "Toca para ver tu palabra",
-    "cover-tap":          "(¡los demás, miren para otro lado!)",
-    "starts-label":       "Empieza:",
-    "starts-sub":         "¡Tú empiezas la discusión!",
-    "confirm-title":      "¿Seguro?",
-    "confirm-ok":         "Sí, eliminarlo",
-    "confirm-cancel":     "Cancelar",
-    "confirm-msg":        (name) => `¿Realmente quieres eliminar a ${name}?`,
-    "caught":             (name) => `¡${name} fue atrapado!`,
-    "was-impostor":       (name, word, hint) => `¡${name} era el impostor!\n\nLa palabra real era: ${word}\nSu pista era: ${hint}`,
-    "innocent":           (name) => `¡${name} era inocente!`,
-    "was-crewmate":       (name, imp) => `${name} era un crewmate...\n\n¡El impostor (${imp}) sigue entre vosotros!\nLa palabra sigue siendo la misma — ¡a seguir discutiendo!`,
-    "crew-wins":          "¡Los crewmates ganan!",
-    "crew-wins-info":     (word, imp) => `¡Encontraron al impostor!\n\nLa palabra era: ${word}\nImpostor: ${imp}`,
-    "imp-wins":           (imp) => `¡${imp} gana!`,
-    "imp-wins-info":      (word, hint) => `¡El impostor ha ganado!\n\nLa palabra era: ${word}\nLa pista era: ${hint}`,
+    "setup-desc":            "Todos reciben la misma palabra — excepto el impostor, que solo recibe una pista.",
+    "player-placeholder":    "Nombre del jugador...",
+    "start-btn":             "Empezar",
+    "min-players":           "Mínimo 3 jugadores",
+    "next-btn":              "Siguiente →",
+    "reveal-hint":           "No enseñes tu palabra",
+    "reveal-sub":            "Tu palabra es",
+    "reveal-crewmate-label": "Tu palabra es",
+    "reveal-impostor-label": "Eres el impostor — tu pista es",
+    "badge-crewmate":        "Crewmate",
+    "badge-impostor":        "Impostor",
+    "discuss-title":         "Discusión",
+    "discuss-desc":          "Cada jugador describe la palabra con una frase, sin decirla directamente.",
+    "discuss-imp":           "El impostor juega sin conocer la palabra real.",
+    "vote-btn":              "Votar",
+    "vote-title":            "Votación",
+    "vote-desc":             "¿Quién es el impostor?",
+    "continue-btn":          "Continuar",
+    "new-game-btn":          "Nuevo juego",
+    "cover-hint":            "Toca para ver tu palabra",
+    "cover-tap":             "Los demás, miren para otro lado",
+    "starts-label":          "Empieza",
+    "starts-sub":            "Tú abres la discusión",
+    "confirm-title":         "¿Seguro?",
+    "confirm-ok":            "Sí, eliminar",
+    "confirm-cancel":        "Cancelar",
+    "confirm-msg":  n  => `¿Eliminar a ${n}?`,
+    "caught":       n  => `${n} era el impostor`,
+    "was-impostor": (n,w,h) => `La palabra era: ${w}\nLa pista del impostor era: ${h}`,
+    "innocent":     n  => `${n} era inocente`,
+    "was-crewmate": n  => `${n} era un crewmate.\n\nEl impostor sigue entre vosotros.\nLa palabra no cambia — ¡a seguir!`,
+    "crew-wins":    () => `Los crewmates ganan`,
+    "crew-wins-info": (w,i) => `Encontraron al impostor.\n\nLa palabra era: ${w}\nImpostor: ${i}`,
+    "imp-wins":     i  => `${i} gana`,
+    "imp-wins-info":(w,h) => `El impostor ha ganado.\n\nLa palabra era: ${w}\nSu pista era: ${h}`,
   },
   de: {
-    "setup-desc":         "Alle Spieler erhalten dasselbe Wort — bis auf den Impostor, der nur einen Hinweis bekommt.",
-    "player-placeholder": "Spielername...",
-    "start-btn":          "Spiel starten",
-    "min-players":        "Mindestens 3 Spieler benötigt.",
-    "next-btn":           "Weiter →",
-    "reveal-hint":        "Zeig das Wort niemandem!",
-    "reveal-sub":         "Dein Wort:",
-    "reveal-crewmate-label": "Das echte Wort:",
-    "reveal-impostor-label": "⚠ Du bist der Impostor! Dein Hinweis:",
-    "badge-crewmate":     "👷 Crewmate",
-    "badge-impostor":     "🔪 Impostor",
-    "discuss-title":      "Diskussion",
-    "discuss-desc":       "Jeder beschreibt das Wort mit einem Satz — ohne es direkt zu nennen.",
-    "discuss-imp":        "Der Impostor muss mitspielen, ohne das echte Wort zu kennen.",
-    "vote-btn":           "Abstimmung starten",
-    "vote-title":         "Abstimmung",
-    "vote-desc":          "Wer ist der Impostor? Tippt auf den Verdächtigen.",
-    "continue-btn":       "Runde fortsetzen",
-    "new-game-btn":       "Neues Spiel",
-    "cover-hint":         "Tippe um dein Wort zu sehen",
-    "cover-tap":          "(andere wegschauen!)",
-    "starts-label":       "Fängt an:",
-    "starts-sub":         "Du startest die Diskussion!",
-    "confirm-title":      "Sicher?",
-    "confirm-ok":         "Ja, rauswerfen",
-    "confirm-cancel":     "Abbrechen",
-    "confirm-msg":        (name) => `Willst du wirklich ${name} rauswerfen?`,
-    "caught":             (name) => `${name} wurde erwischt!`,
-    "was-impostor":       (name, word, hint) => `${name} war der Impostor!\n\nDas echte Wort war: ${word}\nSein Hinweis war: ${hint}`,
-    "innocent":           (name) => `${name} war unschuldig!`,
-    "was-crewmate":       (name, imp) => `${name} war ein Crewmate...\n\nDer Impostor (${imp}) ist noch unter euch!\nDas Wort bleibt dasselbe — weiter diskutieren!`,
-    "crew-wins":          "Crewmates gewinnen!",
-    "crew-wins-info":     (word, imp) => `Ihr habt den Impostor gefunden!\n\nDas Wort war: ${word}\nImpostor: ${imp}`,
-    "imp-wins":           (imp) => `${imp} gewinnt!`,
-    "imp-wins-info":      (word, hint) => `Der Impostor hat gewonnen!\n\nDas Wort war: ${word}\nDer Hinweis war: ${hint}`,
+    "setup-desc":            "Alle bekommen dasselbe Wort — außer dem Impostor, der nur einen Hinweis bekommt.",
+    "player-placeholder":    "Spielername...",
+    "start-btn":             "Starten",
+    "min-players":           "Mindestens 3 Spieler",
+    "next-btn":              "Weiter →",
+    "reveal-hint":           "Zeig niemandem dein Wort",
+    "reveal-sub":            "Dein Wort ist",
+    "reveal-crewmate-label": "Dein Wort ist",
+    "reveal-impostor-label": "Du bist der Impostor — dein Hinweis ist",
+    "badge-crewmate":        "Crewmate",
+    "badge-impostor":        "Impostor",
+    "discuss-title":         "Diskussion",
+    "discuss-desc":          "Jeder beschreibt das Wort mit einem Satz, ohne es direkt zu sagen.",
+    "discuss-imp":           "Der Impostor spielt mit, ohne das echte Wort zu kennen.",
+    "vote-btn":              "Abstimmen",
+    "vote-title":            "Abstimmung",
+    "vote-desc":             "Wer ist der Impostor?",
+    "continue-btn":          "Weiter",
+    "new-game-btn":          "Neues Spiel",
+    "cover-hint":            "Tippe um dein Wort zu sehen",
+    "cover-tap":             "Andere bitte wegschauen",
+    "starts-label":          "Fängt an",
+    "starts-sub":            "Du startest die Diskussion",
+    "confirm-title":         "Sicher?",
+    "confirm-ok":            "Ja, rauswerfen",
+    "confirm-cancel":        "Abbrechen",
+    "confirm-msg":  n  => `${n} rauswerfen?`,
+    "caught":       n  => `${n} war der Impostor`,
+    "was-impostor": (n,w,h) => `Das Wort war: ${w}\nDer Hinweis des Impostors war: ${h}`,
+    "innocent":     n  => `${n} war unschuldig`,
+    "was-crewmate": n  => `${n} war ein Crewmate.\n\nDer Impostor ist noch unter euch.\nDas Wort bleibt gleich — weiter!`,
+    "crew-wins":    () => `Crewmates gewinnen`,
+    "crew-wins-info": (w,i) => `Der Impostor wurde gefunden.\n\nDas Wort war: ${w}\nImpostor: ${i}`,
+    "imp-wins":     i  => `${i} gewinnt`,
+    "imp-wins-info":(w,h) => `Der Impostor hat gewonnen.\n\nDas Wort war: ${w}\nSein Hinweis war: ${h}`,
   }
 };
 
-// ── Word lists per language ──
 const WORDS = {
   es: [
-    ["Pizza",        "Sushi"],
-    ["Perro",        "Caballo"],
-    ["Playa",        "Bosque"],
-    ["Manzana",      "Zanahoria"],
-    ["Coche",        "Barco"],
-    ["Fútbol",       "Tenis"],
-    ["Guitarra",     "Piano"],
-    ["Sol",          "Estrella"],
-    ["Hospital",     "Colegio"],
-    ["Avión",        "Bicicleta"],
-    ["Maleta",       "Cartera"],
-    ["Piscina",      "Sauna"],
-    ["Fuego",        "Agua"],
-    ["Castillo",     "Tienda de campaña"],
-    ["Gato",         "Pájaro"],
-    ["Café",         "Zumo"],
-    ["Chocolate",    "Sal"],
-    ["Puente",       "Escalera"],
-    ["Lluvia",       "Viento"],
-    ["Biblioteca",   "Supermercado"],
-    ["Nevera",       "Horno"],
-    ["Profesor",     "Médico"],
-    ["Tiburón",      "Águila"],
-    ["Desierto",     "Glaciar"],
-    ["Vela",         "Rayo"],
-    ["Espejo",       "Cuadro"],
-    ["Calcetín",     "Guante"],
-    ["Panadero",     "Peluquero"],
-    ["Cama",         "Sofá"],
-    ["Cumpleaños",   "Nochevieja"],
-    ["Faro",         "Iglesia"],
-    ["Cactus",       "Seta"],
-    ["Boxeo",        "Natación"],
-    ["Selva",        "Tundra"],
-    ["Moneda",       "Sello"],
-    ["Cuchara",      "Tijeras"],
-    ["Espada",       "Maza"],
-    ["Caballero",    "Pirata"],
-    ["Abeja",        "Hormiga"],
-    ["Cine",         "Estadio"],
-    ["Muñeco de nieve", "Castillo de arena"],
-    ["Diamante",     "Concha"],
-    ["Volcán",       "Géiser"],
-    ["Globo",        "Cometa"],
-    ["Serpiente",    "Gusano"],
-    ["Pingüino",     "Oso polar"],
-    ["Tren",         "Tranvía"],
-    ["Queso",        "Mermelada"],
-    ["Sombrero",     "Bufanda"],
-    ["Cohete",       "Submarino"],
+    ["Pizza","Sushi"],["Perro","Caballo"],["Playa","Bosque"],["Manzana","Zanahoria"],
+    ["Coche","Barco"],["Fútbol","Tenis"],["Guitarra","Piano"],["Sol","Estrella"],
+    ["Hospital","Colegio"],["Avión","Bicicleta"],["Maleta","Cartera"],["Piscina","Sauna"],
+    ["Fuego","Agua"],["Castillo","Tienda de campaña"],["Gato","Pájaro"],["Café","Zumo"],
+    ["Chocolate","Sal"],["Puente","Escalera"],["Lluvia","Viento"],["Biblioteca","Supermercado"],
+    ["Nevera","Horno"],["Profesor","Médico"],["Tiburón","Águila"],["Desierto","Glaciar"],
+    ["Vela","Rayo"],["Espejo","Cuadro"],["Calcetín","Guante"],["Panadero","Peluquero"],
+    ["Cama","Sofá"],["Cumpleaños","Nochevieja"],["Faro","Iglesia"],["Cactus","Seta"],
+    ["Boxeo","Natación"],["Selva","Tundra"],["Moneda","Sello"],["Cuchara","Tijeras"],
+    ["Espada","Maza"],["Caballero","Pirata"],["Abeja","Hormiga"],["Cine","Estadio"],
+    ["Volcán","Géiser"],["Globo","Cometa"],["Serpiente","Gusano"],["Pingüino","Oso polar"],
+    ["Tren","Tranvía"],["Queso","Mermelada"],["Sombrero","Bufanda"],["Cohete","Submarino"],
+    ["Diamante","Concha"],["Muñeco de nieve","Castillo de arena"],
   ],
   de: [
-    ["Pizza",        "Sushi"],
-    ["Hund",         "Pferd"],
-    ["Strand",       "Wald"],
-    ["Apfel",        "Karotte"],
-    ["Auto",         "Schiff"],
-    ["Fußball",      "Tennis"],
-    ["Gitarre",      "Klavier"],
-    ["Sonne",        "Stern"],
-    ["Krankenhaus",  "Schule"],
-    ["Flugzeug",     "Fahrrad"],
-    ["Koffer",       "Brieftasche"],
-    ["Schwimmbad",   "Sauna"],
-    ["Feuer",        "Wasser"],
-    ["Schloss",      "Zelt"],
-    ["Katze",        "Vogel"],
-    ["Kaffee",       "Saft"],
-    ["Schokolade",   "Salz"],
-    ["Brücke",       "Leiter"],
-    ["Regen",        "Wind"],
-    ["Bibliothek",   "Supermarkt"],
-    ["Kühlschrank",  "Ofen"],
-    ["Lehrer",       "Arzt"],
-    ["Hai",          "Adler"],
-    ["Wüste",        "Gletscher"],
-    ["Kerze",        "Blitz"],
-    ["Spiegel",      "Gemälde"],
-    ["Socke",        "Handschuh"],
-    ["Bäcker",       "Friseur"],
-    ["Sofa",         "Bett"],
-    ["Geburtstag",   "Silvester"],
-    ["Leuchtturm",   "Kirche"],
-    ["Kaktus",       "Pilz"],
-    ["Boxen",        "Schwimmen"],
-    ["Dschungel",    "Tundra"],
-    ["Münze",        "Briefmarke"],
-    ["Löffel",       "Schere"],
-    ["Schwert",      "Keule"],
-    ["Ritter",       "Pirat"],
-    ["Biene",        "Ameise"],
-    ["Kino",         "Stadion"],
-    ["Schneemann",   "Sandburg"],
-    ["Diamant",      "Muschel"],
-    ["Vulkan",       "Geysir"],
-    ["Ballon",       "Drachen"],
-    ["Schlange",     "Wurm"],
-    ["Pinguin",      "Eisbär"],
-    ["Zug",          "Straßenbahn"],
-    ["Käse",         "Marmelade"],
-    ["Hut",          "Schal"],
-    ["Rakete",       "U-Boot"],
+    ["Pizza","Sushi"],["Hund","Pferd"],["Strand","Wald"],["Apfel","Karotte"],
+    ["Auto","Schiff"],["Fußball","Tennis"],["Gitarre","Klavier"],["Sonne","Stern"],
+    ["Krankenhaus","Schule"],["Flugzeug","Fahrrad"],["Koffer","Brieftasche"],["Schwimmbad","Sauna"],
+    ["Feuer","Wasser"],["Schloss","Zelt"],["Katze","Vogel"],["Kaffee","Saft"],
+    ["Schokolade","Salz"],["Brücke","Leiter"],["Regen","Wind"],["Bibliothek","Supermarkt"],
+    ["Kühlschrank","Ofen"],["Lehrer","Arzt"],["Hai","Adler"],["Wüste","Gletscher"],
+    ["Kerze","Blitz"],["Spiegel","Gemälde"],["Socke","Handschuh"],["Bäcker","Friseur"],
+    ["Sofa","Bett"],["Geburtstag","Silvester"],["Leuchtturm","Kirche"],["Kaktus","Pilz"],
+    ["Boxen","Schwimmen"],["Dschungel","Tundra"],["Münze","Briefmarke"],["Löffel","Schere"],
+    ["Schwert","Keule"],["Ritter","Pirat"],["Biene","Ameise"],["Kino","Stadion"],
+    ["Vulkan","Geysir"],["Ballon","Drachen"],["Schlange","Wurm"],["Pinguin","Eisbär"],
+    ["Zug","Straßenbahn"],["Käse","Marmelade"],["Hut","Schal"],["Rakete","U-Boot"],
+    ["Diamant","Muschel"],["Schneemann","Sandburg"],
   ]
 };
 
 // ── State ──
-let lang = localStorage.getItem('impostor-lang') || 'es';
-let players = JSON.parse(localStorage.getItem('impostor-players') || '[]');
-let revealIndex = 0;
-let currentWord = null;
-let currentHint = null;
-let impostorName = null;
-let eliminated = [];
-let pendingEject = null;
+let lang     = localStorage.getItem('imp-lang') || 'es';
+let players  = JSON.parse(localStorage.getItem('imp-players') || '[]');
+let revealIndex = 0, currentWord = null, currentHint = null;
+let impostorName = null, eliminated = [], pendingEject = null;
 
 // ── Helpers ──
 const $ = id => document.getElementById(id);
-const t = key => T[lang][key] || key;
-
+const t = key => { const v = T[lang][key]; return typeof v === 'string' ? v : key; };
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
@@ -555,31 +580,23 @@ function shuffle(arr) {
   }
   return a;
 }
-function savePlayers() {
-  localStorage.setItem('impostor-players', JSON.stringify(players));
-}
+function savePlayers() { localStorage.setItem('imp-players', JSON.stringify(players)); }
 
 // ── Language ──
 function applyLang() {
   document.documentElement.lang = lang;
   $('lang-toggle').textContent = lang === 'es' ? 'DE' : 'ES';
   document.querySelectorAll('[data-t]').forEach(el => {
-    const key = el.dataset.t;
-    const val = T[lang][key];
-    if (val && typeof val === 'string') el.textContent = val;
+    const v = T[lang][el.dataset.t];
+    if (typeof v === 'string') el.textContent = v;
   });
   document.querySelectorAll('[data-t-placeholder]').forEach(el => {
-    const key = el.dataset.tPlaceholder;
-    const val = T[lang][key];
-    if (val) el.placeholder = val;
+    const v = T[lang][el.dataset.tPlaceholder];
+    if (v) el.placeholder = v;
   });
-  localStorage.setItem('impostor-lang', lang);
+  localStorage.setItem('imp-lang', lang);
 }
-
-$('lang-toggle').onclick = function() {
-  lang = lang === 'es' ? 'de' : 'es';
-  applyLang();
-};
+$('lang-toggle').onclick = () => { lang = lang === 'es' ? 'de' : 'es'; applyLang(); };
 
 // ── Setup ──
 function renderPlayerList() {
@@ -593,37 +610,25 @@ function renderPlayerList() {
   });
   $('start-btn').disabled = players.length < 3;
 }
-
 $('add-btn').onclick = addPlayer;
 $('name-input').addEventListener('keydown', e => { if (e.key === 'Enter') addPlayer(); });
-
 function addPlayer() {
   const val = $('name-input').value.trim();
-  if (!val) return;
-  if (players.map(p => p.toLowerCase()).includes(val.toLowerCase())) {
+  if (!val || players.map(p => p.toLowerCase()).includes(val.toLowerCase())) {
     $('name-input').value = ''; return;
   }
   players.push(val);
   $('name-input').value = '';
-  savePlayers();
-  renderPlayerList();
+  savePlayers(); renderPlayerList();
 }
+window.removePlayer = function(i) { players.splice(i, 1); savePlayers(); renderPlayerList(); };
 
-window.removePlayer = function(i) {
-  players.splice(i, 1);
-  savePlayers();
-  renderPlayerList();
-};
-
-// ── Start Game ──
+// ── Start ──
 $('start-btn').onclick = function() {
-  const wordList = WORDS[lang];
-  const pair = wordList[Math.floor(Math.random() * wordList.length)];
-  currentWord = pair[0];
-  currentHint = pair[1];
+  const pair = WORDS[lang][Math.floor(Math.random() * WORDS[lang].length)];
+  currentWord = pair[0]; currentHint = pair[1];
   impostorName = shuffle(players)[0];
-  eliminated = [];
-  revealIndex = 0;
+  eliminated = []; revealIndex = 0;
   showCover();
 };
 
@@ -633,12 +638,12 @@ function showCover() {
   if (revealIndex >= alive.length) {
     const starter = alive[Math.floor(Math.random() * alive.length)];
     $('so-name').textContent = starter;
-    const overlay = $('start-overlay');
-    overlay.classList.remove('hidden');
-    overlay.onclick = function() {
-      overlay.classList.add('hidden');
+    const ov = $('start-overlay');
+    ov.classList.remove('hidden');
+    ov.onclick = () => {
+      ov.classList.add('hidden');
       show('screen-discuss');
-      $('discuss-players').textContent = alive.join(' · ');
+      $('discuss-players').textContent = alive.join('  ·  ');
     };
     return;
   }
@@ -646,71 +651,45 @@ function showCover() {
   $('cover-name').textContent = name;
   const cover = $('cover');
   cover.classList.remove('hidden');
-  cover.onclick = function() {
-    cover.classList.add('hidden');
-    showReveal(name);
-  };
+  cover.onclick = () => { cover.classList.add('hidden'); showReveal(name); };
 }
 
 // ── Reveal ──
 function showReveal(name) {
   show('screen-reveal');
-  const isImpostor = name === impostorName;
+  const imp = name === impostorName;
   $('reveal-name').textContent = name;
-  $('reveal-sub').textContent = t('reveal-sub');
-
-  if (isImpostor) {
-    $('reveal-word-label').textContent = t('reveal-impostor-label');
-    $('reveal-word').textContent = currentHint;
-    $('reveal-word').className = 'big-word impostor';
-    $('reveal-badge').textContent = t('badge-impostor');
-    $('reveal-badge').className = 'role-badge impostor';
-  } else {
-    $('reveal-word-label').textContent = t('reveal-crewmate-label');
-    $('reveal-word').textContent = currentWord;
-    $('reveal-word').className = 'big-word real';
-    $('reveal-badge').textContent = t('badge-crewmate');
-    $('reveal-badge').className = 'role-badge crewmate';
-  }
+  $('reveal-word-label').textContent = t(imp ? 'reveal-impostor-label' : 'reveal-crewmate-label');
+  $('reveal-word').textContent  = imp ? currentHint : currentWord;
+  $('reveal-word').className    = 'big-word ' + (imp ? 'impostor' : 'real');
+  $('reveal-badge').textContent = t(imp ? 'badge-impostor' : 'badge-crewmate');
+  $('reveal-badge').className   = 'role-pill ' + (imp ? 'impostor' : 'crewmate');
 }
+$('next-reveal-btn').onclick = () => { revealIndex++; showCover(); };
 
-$('next-reveal-btn').onclick = function() {
-  revealIndex++;
-  showCover();
-};
-
-// ── Voting ──
-$('go-vote-btn').onclick = function() {
-  show('screen-vote');
-  buildVoteGrid();
-};
-
+// ── Vote ──
+$('go-vote-btn').onclick = () => { show('screen-vote'); buildVoteGrid(); };
 function buildVoteGrid() {
   const alive = players.filter(p => !eliminated.includes(p));
   const grid = $('vote-grid');
   grid.innerHTML = '';
   alive.forEach(name => {
-    const card = document.createElement('div');
-    card.className = 'vote-card';
-    card.textContent = name;
-    card.onclick = () => confirmEject(name);
-    grid.appendChild(card);
+    const c = document.createElement('div');
+    c.className = 'vote-card';
+    c.textContent = name;
+    c.onclick = () => confirmEject(name);
+    grid.appendChild(c);
   });
 }
 
-// ── Confirm modal ──
+// ── Confirm ──
 function confirmEject(name) {
   pendingEject = name;
   $('confirm-text').textContent = T[lang]['confirm-msg'](name);
   $('confirm-modal').classList.remove('hidden');
 }
-
-$('confirm-cancel').onclick = function() {
-  $('confirm-modal').classList.add('hidden');
-  pendingEject = null;
-};
-
-$('confirm-ok').onclick = function() {
+$('confirm-cancel').onclick = () => { $('confirm-modal').classList.add('hidden'); pendingEject = null; };
+$('confirm-ok').onclick = () => {
   $('confirm-modal').classList.add('hidden');
   if (pendingEject) ejectPlayer(pendingEject);
   pendingEject = null;
@@ -719,36 +698,32 @@ $('confirm-ok').onclick = function() {
 // ── Eject ──
 function ejectPlayer(name) {
   show('screen-eject');
-  const isImpostor = name === impostorName;
-
-  if (isImpostor) {
+  const imp = name === impostorName;
+  if (imp) {
     $('eject-emoji').textContent = '🎉';
     $('eject-title').textContent = T[lang]['caught'](name);
-    $('eject-title').className = 'result-title win';
-    $('eject-info').textContent = T[lang]['was-impostor'](name, currentWord, currentHint);
+    $('eject-title').className   = 'result-head win';
+    $('eject-info').textContent  = T[lang]['was-impostor'](name, currentWord, currentHint);
     $('next-round-btn').style.display = 'none';
-    setTimeout(() => triggerGameOver('crew'), 100);
+    setTimeout(() => triggerGameOver('crew'), 80);
   } else {
     $('eject-emoji').textContent = '😬';
     $('eject-title').textContent = T[lang]['innocent'](name);
-    $('eject-title').className = 'result-title lose';
-    $('eject-info').textContent = T[lang]['was-crewmate'](name, impostorName);
+    $('eject-title').className   = 'result-head lose';
+    $('eject-info').textContent  = T[lang]['was-crewmate'](name);   // ← no impostor name
     eliminated.push(name);
     const aliveAfter = players.filter(p => !eliminated.includes(p));
     if (aliveAfter.length <= 2) {
       $('next-round-btn').style.display = 'none';
-      setTimeout(() => triggerGameOver('imp'), 100);
+      setTimeout(() => triggerGameOver('imp'), 80);
     } else {
       $('next-round-btn').style.display = '';
     }
   }
 }
-
-// Continue same round (same word, no re-reveal)
-$('next-round-btn').onclick = function() {
+$('next-round-btn').onclick = () => {
   show('screen-discuss');
-  const alive = players.filter(p => !eliminated.includes(p));
-  $('discuss-players').textContent = alive.join(' · ');
+  $('discuss-players').textContent = players.filter(p => !eliminated.includes(p)).join('  ·  ');
 };
 
 // ── Game Over ──
@@ -756,28 +731,22 @@ function triggerGameOver(winner) {
   show('screen-gameover');
   if (winner === 'crew') {
     $('go-emoji').textContent = '🎉';
-    $('go-title').textContent = t('crew-wins');
-    $('go-title').className = 'result-title win';
-    $('go-info').textContent = T[lang]['crew-wins-info'](currentWord, impostorName);
+    $('go-title').textContent = T[lang]['crew-wins']();
+    $('go-title').className   = 'result-head win';
+    $('go-info').textContent  = T[lang]['crew-wins-info'](currentWord, impostorName);
   } else {
     $('go-emoji').textContent = '💀';
     $('go-title').textContent = T[lang]['imp-wins'](impostorName);
-    $('go-title').className = 'result-title lose';
-    $('go-info').textContent = T[lang]['imp-wins-info'](currentWord, currentHint);
+    $('go-title').className   = 'result-head lose';
+    $('go-info').textContent  = T[lang]['imp-wins-info'](currentWord, currentHint);
   }
 }
 
-// ── New Game ──
-function resetGame() {
-  eliminated = [];
-  revealIndex = 0;
-  show('screen-setup');
-}
-
+// ── Reset ──
+function resetGame() { eliminated = []; revealIndex = 0; show('screen-setup'); }
 $('new-game-btn').onclick  = resetGame;
 $('new-game-btn2').onclick = resetGame;
 
-// Init
 applyLang();
 renderPlayerList();
 </script>
