@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,6 +16,25 @@
       align-items: center;
       justify-content: center;
     }
+
+    /* Language toggle */
+    #lang-toggle {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 30;
+      background: #16213e;
+      border: 1px solid #444;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: .8rem;
+      font-weight: bold;
+      color: #aaa;
+      cursor: pointer;
+      letter-spacing: 1px;
+      transition: border-color .2s;
+    }
+    #lang-toggle:hover { border-color: #e94560; color: #eee; }
 
     .screen {
       display: none;
@@ -158,7 +177,6 @@
     }
     .vote-card:active { transform: scale(.95); }
     .vote-card:hover  { border-color: #e94560; background: #1e1e3e; }
-    .vote-card.eliminated { opacity: .3; pointer-events: none; text-decoration: line-through; }
 
     /* Eject / Result */
     .result-box {
@@ -177,13 +195,12 @@
 
     .divider { width: 100%; height: 1px; background: #2a2a4e; }
     .small { font-size: .8rem; color: #555; text-align: center; }
-    .row { display: flex; gap: 10px; width: 100%; }
 
     /* Are you sure modal */
     #confirm-modal {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.7);
+      background: rgba(0,0,0,.75);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -195,17 +212,17 @@
       border: 2px solid #e94560;
       border-radius: 16px;
       padding: 28px 24px;
-      max-width: 320px;
+      max-width: 340px;
       width: 90%;
       text-align: center;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
     .modal-box h3 { font-size: 1.2rem; color: #eee; }
     .modal-box p  { font-size: .95rem; color: #aaa; margin: 0; }
-    .modal-btns   { display: flex; gap: 10px; }
-    .modal-btns .btn { flex: 1; }
+    /* buttons stacked vertically */
+    .modal-btns { display: flex; flex-direction: column; gap: 10px; }
 
     /* Starting player overlay */
     #start-overlay {
@@ -229,19 +246,21 @@
 </head>
 <body>
 
+<button id="lang-toggle">DE</button>
+
 <!-- ── SCREEN 1: Setup ── -->
 <div class="screen active" id="screen-setup">
   <h1>Impostor</h1>
-  <p>Alle Spieler erhalten dasselbe Wort — bis auf den Impostor, der nur einen Hinweis bekommt.</p>
+  <p data-t="setup-desc"></p>
 
   <div style="width:100%;display:flex;gap:8px;">
-    <input type="text" id="name-input" placeholder="Spielername..." maxlength="20" />
+    <input type="text" id="name-input" data-t-placeholder="player-placeholder" maxlength="20" />
     <button class="btn btn-red" style="width:auto;padding:12px 20px;" id="add-btn">+</button>
   </div>
   <div id="player-list"></div>
 
-  <button class="btn btn-green" id="start-btn" disabled>Spiel starten</button>
-  <p class="small">Mindestens 3 Spieler benötigt.</p>
+  <button class="btn btn-green" id="start-btn" disabled data-t="start-btn"></button>
+  <p class="small" data-t="min-players"></p>
 </div>
 
 <!-- ── SCREEN 2: Role Reveal ── -->
@@ -253,24 +272,24 @@
     <div class="big-word" id="reveal-word"></div>
     <div class="role-badge" id="reveal-badge"></div>
   </div>
-  <button class="btn btn-blue" id="next-reveal-btn">Weiter →</button>
-  <p class="small">Zeig das Wort niemandem!</p>
+  <button class="btn btn-blue" id="next-reveal-btn" data-t="next-btn"></button>
+  <p class="small" data-t="reveal-hint"></p>
 </div>
 
 <!-- ── SCREEN 3: Discussion ── -->
 <div class="screen" id="screen-discuss">
-  <h2>Diskussion</h2>
-  <p>Jeder beschreibt das Wort mit einem einzigen Satz oder Hinweis — ohne es direkt zu nennen.</p>
-  <p style="color:#e94560;font-size:.9rem;">Der Impostor muss mitspielen, ohne das echte Wort zu kennen.</p>
+  <h2 data-t="discuss-title"></h2>
+  <p data-t="discuss-desc"></p>
+  <p style="color:#e94560;font-size:.9rem;" data-t="discuss-imp"></p>
   <div class="divider"></div>
   <p class="small" id="discuss-players"></p>
-  <button class="btn btn-red" id="go-vote-btn">Abstimmung starten</button>
+  <button class="btn btn-red" id="go-vote-btn" data-t="vote-btn"></button>
 </div>
 
 <!-- ── SCREEN 4: Voting ── -->
 <div class="screen" id="screen-vote">
-  <h2>Abstimmung</h2>
-  <p>Wer ist der Impostor? Tippt auf den Verdächtigen.</p>
+  <h2 data-t="vote-title"></h2>
+  <p data-t="vote-desc"></p>
   <div id="vote-grid"></div>
 </div>
 
@@ -281,8 +300,8 @@
     <div class="result-title" id="eject-title"></div>
     <div class="result-info" id="eject-info"></div>
   </div>
-  <button class="btn btn-green" id="next-round-btn">Nächste Runde</button>
-  <button class="btn btn-gray"  id="new-game-btn2">Neues Spiel</button>
+  <button class="btn btn-green" id="next-round-btn" data-t="continue-btn"></button>
+  <button class="btn btn-gray"  id="new-game-btn2" data-t="new-game-btn"></button>
 </div>
 
 <!-- ── SCREEN 6: Game Over ── -->
@@ -293,103 +312,237 @@
     <div class="result-title" id="go-title"></div>
     <div class="result-info" id="go-info"></div>
   </div>
-  <button class="btn btn-green" id="new-game-btn">Neues Spiel</button>
+  <button class="btn btn-green" id="new-game-btn" data-t="new-game-btn"></button>
 </div>
 
 <!-- Cover between reveals -->
 <div id="cover" class="hidden">
   <div class="cover-name" id="cover-name"></div>
-  <p class="cover-hint">Tippe um dein Wort zu sehen</p>
-  <p class="cover-tap">(andere wegschauen!)</p>
+  <p class="cover-hint" data-t="cover-hint"></p>
+  <p class="cover-tap" data-t="cover-tap"></p>
 </div>
 
 <!-- Starting player overlay -->
 <div id="start-overlay" class="hidden">
-  <div class="so-label">Fängt an:</div>
+  <div class="so-label" data-t="starts-label"></div>
   <div class="so-name" id="so-name"></div>
-  <div class="so-sub">Du startest die Diskussion!</div>
-  <div class="so-tap">Tippen um weiterzumachen</div>
+  <div class="so-sub" data-t="starts-sub"></div>
+  <div class="so-tap" data-t="cover-tap"></div>
 </div>
 
 <!-- Are you sure modal -->
 <div id="confirm-modal" class="hidden">
   <div class="modal-box">
-    <h3>Sicher?</h3>
+    <h3 data-t="confirm-title"></h3>
     <p id="confirm-text"></p>
     <div class="modal-btns">
-      <button class="btn btn-gray" id="confirm-cancel">Abbrechen</button>
-      <button class="btn btn-red"  id="confirm-ok">Ja, rauswerfen</button>
+      <button class="btn btn-red"  id="confirm-ok"     data-t="confirm-ok"></button>
+      <button class="btn btn-gray" id="confirm-cancel" data-t="confirm-cancel"></button>
     </div>
   </div>
 </div>
 
 <script>
-// ── Word list: [real word, impostor hint] ──
-// Hint = same broad category, but far enough to not give it away
-const WORDS = [
-  ["Pizza",        "Sushi"],
-  ["Hund",         "Pferd"],
-  ["Strand",       "Wald"],
-  ["Apfel",        "Karotte"],
-  ["Auto",         "Schiff"],
-  ["Fußball",      "Tennis"],
-  ["Gitarre",      "Klavier"],
-  ["Sonne",        "Stern"],
-  ["Krankenhaus",  "Schule"],
-  ["Flugzeug",     "Fahrrad"],
-  ["Koffer",       "Brieftasche"],
-  ["Schwimmbad",   "Sauna"],
-  ["Feuer",        "Wasser"],
-  ["Schloss",      "Zelt"],
-  ["Katze",        "Vogel"],
-  ["Kaffee",       "Saft"],
-  ["Schokolade",   "Salz"],
-  ["Brücke",       "Leiter"],
-  ["Regen",        "Wind"],
-  ["Bibliothek",   "Supermarkt"],
-  ["Fahrrad",      "Boot"],
-  ["Kühlschrank",  "Ofen"],
-  ["Lehrer",       "Arzt"],
-  ["Hai",          "Adler"],
-  ["Wüste",        "Gletscher"],
-  ["Kerze",        "Blitz"],
-  ["Spiegel",      "Gemälde"],
-  ["Socke",        "Handschuh"],
-  ["Bäcker",       "Friseur"],
-  ["Trampolin",    "Rutsche"],
-  ["Zug",          "Straßenbahn"],
-  ["Käse",         "Marmelade"],
-  ["Vulkan",       "Geysir"],
-  ["Pinguin",      "Eisbär"],
-  ["Ballon",       "Drachen"],
-  ["Schlange",     "Wurm"],
-  ["Sofa",         "Bett"],
-  ["Geburtstag",   "Silvester"],
-  ["Leuchtturm",   "Kirche"],
-  ["Kaktus",       "Pilz"],
-  ["Boxen",        "Schwimmen"],
-  ["Dschungel",    "Tundra"],
-  ["Münze",        "Briefmarke"],
-  ["Löffel",       "Schere"],
-  ["Schwert",      "Keule"],
-  ["Ritter",       "Pirat"],
-  ["Biene",        "Ameise"],
-  ["Kino",         "Stadion"],
-  ["Schneemann",   "Sandburg"],
-  ["Diamant",      "Muschel"],
-];
+// ── Translations ──
+const T = {
+  es: {
+    "setup-desc":         "Todos los jugadores reciben la misma palabra — excepto el impostor, que solo recibe una pista.",
+    "player-placeholder": "Nombre del jugador...",
+    "start-btn":          "Iniciar juego",
+    "min-players":        "Se necesitan mínimo 3 jugadores.",
+    "next-btn":           "Siguiente →",
+    "reveal-hint":        "¡No le muestres la palabra a nadie!",
+    "reveal-sub":         "Tu palabra:",
+    "reveal-crewmate-label": "La palabra real:",
+    "reveal-impostor-label": "⚠ ¡Eres el impostor! Tu pista:",
+    "badge-crewmate":     "👷 Crewmate",
+    "badge-impostor":     "🔪 Impostor",
+    "discuss-title":      "Discusión",
+    "discuss-desc":       "Cada jugador describe la palabra con una frase — sin decirla directamente.",
+    "discuss-imp":        "El impostor debe participar sin saber la palabra real.",
+    "vote-btn":           "Iniciar votación",
+    "vote-title":         "Votación",
+    "vote-desc":          "¿Quién es el impostor? Toca al sospechoso.",
+    "continue-btn":       "Continuar ronda",
+    "new-game-btn":       "Nuevo juego",
+    "cover-hint":         "Toca para ver tu palabra",
+    "cover-tap":          "(¡los demás, miren para otro lado!)",
+    "starts-label":       "Empieza:",
+    "starts-sub":         "¡Tú empiezas la discusión!",
+    "confirm-title":      "¿Seguro?",
+    "confirm-ok":         "Sí, eliminarlo",
+    "confirm-cancel":     "Cancelar",
+    "confirm-msg":        (name) => `¿Realmente quieres eliminar a ${name}?`,
+    "caught":             (name) => `¡${name} fue atrapado!`,
+    "was-impostor":       (name, word, hint) => `¡${name} era el impostor!\n\nLa palabra real era: ${word}\nSu pista era: ${hint}`,
+    "innocent":           (name) => `¡${name} era inocente!`,
+    "was-crewmate":       (name, imp) => `${name} era un crewmate...\n\n¡El impostor (${imp}) sigue entre vosotros!\nLa palabra sigue siendo la misma — ¡a seguir discutiendo!`,
+    "crew-wins":          "¡Los crewmates ganan!",
+    "crew-wins-info":     (word, imp) => `¡Encontraron al impostor!\n\nLa palabra era: ${word}\nImpostor: ${imp}`,
+    "imp-wins":           (imp) => `¡${imp} gana!`,
+    "imp-wins-info":      (word, hint) => `¡El impostor ha ganado!\n\nLa palabra era: ${word}\nLa pista era: ${hint}`,
+  },
+  de: {
+    "setup-desc":         "Alle Spieler erhalten dasselbe Wort — bis auf den Impostor, der nur einen Hinweis bekommt.",
+    "player-placeholder": "Spielername...",
+    "start-btn":          "Spiel starten",
+    "min-players":        "Mindestens 3 Spieler benötigt.",
+    "next-btn":           "Weiter →",
+    "reveal-hint":        "Zeig das Wort niemandem!",
+    "reveal-sub":         "Dein Wort:",
+    "reveal-crewmate-label": "Das echte Wort:",
+    "reveal-impostor-label": "⚠ Du bist der Impostor! Dein Hinweis:",
+    "badge-crewmate":     "👷 Crewmate",
+    "badge-impostor":     "🔪 Impostor",
+    "discuss-title":      "Diskussion",
+    "discuss-desc":       "Jeder beschreibt das Wort mit einem Satz — ohne es direkt zu nennen.",
+    "discuss-imp":        "Der Impostor muss mitspielen, ohne das echte Wort zu kennen.",
+    "vote-btn":           "Abstimmung starten",
+    "vote-title":         "Abstimmung",
+    "vote-desc":          "Wer ist der Impostor? Tippt auf den Verdächtigen.",
+    "continue-btn":       "Runde fortsetzen",
+    "new-game-btn":       "Neues Spiel",
+    "cover-hint":         "Tippe um dein Wort zu sehen",
+    "cover-tap":          "(andere wegschauen!)",
+    "starts-label":       "Fängt an:",
+    "starts-sub":         "Du startest die Diskussion!",
+    "confirm-title":      "Sicher?",
+    "confirm-ok":         "Ja, rauswerfen",
+    "confirm-cancel":     "Abbrechen",
+    "confirm-msg":        (name) => `Willst du wirklich ${name} rauswerfen?`,
+    "caught":             (name) => `${name} wurde erwischt!`,
+    "was-impostor":       (name, word, hint) => `${name} war der Impostor!\n\nDas echte Wort war: ${word}\nSein Hinweis war: ${hint}`,
+    "innocent":           (name) => `${name} war unschuldig!`,
+    "was-crewmate":       (name, imp) => `${name} war ein Crewmate...\n\nDer Impostor (${imp}) ist noch unter euch!\nDas Wort bleibt dasselbe — weiter diskutieren!`,
+    "crew-wins":          "Crewmates gewinnen!",
+    "crew-wins-info":     (word, imp) => `Ihr habt den Impostor gefunden!\n\nDas Wort war: ${word}\nImpostor: ${imp}`,
+    "imp-wins":           (imp) => `${imp} gewinnt!`,
+    "imp-wins-info":      (word, hint) => `Der Impostor hat gewonnen!\n\nDas Wort war: ${word}\nDer Hinweis war: ${hint}`,
+  }
+};
+
+// ── Word lists per language ──
+const WORDS = {
+  es: [
+    ["Pizza",        "Sushi"],
+    ["Perro",        "Caballo"],
+    ["Playa",        "Bosque"],
+    ["Manzana",      "Zanahoria"],
+    ["Coche",        "Barco"],
+    ["Fútbol",       "Tenis"],
+    ["Guitarra",     "Piano"],
+    ["Sol",          "Estrella"],
+    ["Hospital",     "Colegio"],
+    ["Avión",        "Bicicleta"],
+    ["Maleta",       "Cartera"],
+    ["Piscina",      "Sauna"],
+    ["Fuego",        "Agua"],
+    ["Castillo",     "Tienda de campaña"],
+    ["Gato",         "Pájaro"],
+    ["Café",         "Zumo"],
+    ["Chocolate",    "Sal"],
+    ["Puente",       "Escalera"],
+    ["Lluvia",       "Viento"],
+    ["Biblioteca",   "Supermercado"],
+    ["Nevera",       "Horno"],
+    ["Profesor",     "Médico"],
+    ["Tiburón",      "Águila"],
+    ["Desierto",     "Glaciar"],
+    ["Vela",         "Rayo"],
+    ["Espejo",       "Cuadro"],
+    ["Calcetín",     "Guante"],
+    ["Panadero",     "Peluquero"],
+    ["Cama",         "Sofá"],
+    ["Cumpleaños",   "Nochevieja"],
+    ["Faro",         "Iglesia"],
+    ["Cactus",       "Seta"],
+    ["Boxeo",        "Natación"],
+    ["Selva",        "Tundra"],
+    ["Moneda",       "Sello"],
+    ["Cuchara",      "Tijeras"],
+    ["Espada",       "Maza"],
+    ["Caballero",    "Pirata"],
+    ["Abeja",        "Hormiga"],
+    ["Cine",         "Estadio"],
+    ["Muñeco de nieve", "Castillo de arena"],
+    ["Diamante",     "Concha"],
+    ["Volcán",       "Géiser"],
+    ["Globo",        "Cometa"],
+    ["Serpiente",    "Gusano"],
+    ["Pingüino",     "Oso polar"],
+    ["Tren",         "Tranvía"],
+    ["Queso",        "Mermelada"],
+    ["Sombrero",     "Bufanda"],
+    ["Cohete",       "Submarino"],
+  ],
+  de: [
+    ["Pizza",        "Sushi"],
+    ["Hund",         "Pferd"],
+    ["Strand",       "Wald"],
+    ["Apfel",        "Karotte"],
+    ["Auto",         "Schiff"],
+    ["Fußball",      "Tennis"],
+    ["Gitarre",      "Klavier"],
+    ["Sonne",        "Stern"],
+    ["Krankenhaus",  "Schule"],
+    ["Flugzeug",     "Fahrrad"],
+    ["Koffer",       "Brieftasche"],
+    ["Schwimmbad",   "Sauna"],
+    ["Feuer",        "Wasser"],
+    ["Schloss",      "Zelt"],
+    ["Katze",        "Vogel"],
+    ["Kaffee",       "Saft"],
+    ["Schokolade",   "Salz"],
+    ["Brücke",       "Leiter"],
+    ["Regen",        "Wind"],
+    ["Bibliothek",   "Supermarkt"],
+    ["Kühlschrank",  "Ofen"],
+    ["Lehrer",       "Arzt"],
+    ["Hai",          "Adler"],
+    ["Wüste",        "Gletscher"],
+    ["Kerze",        "Blitz"],
+    ["Spiegel",      "Gemälde"],
+    ["Socke",        "Handschuh"],
+    ["Bäcker",       "Friseur"],
+    ["Sofa",         "Bett"],
+    ["Geburtstag",   "Silvester"],
+    ["Leuchtturm",   "Kirche"],
+    ["Kaktus",       "Pilz"],
+    ["Boxen",        "Schwimmen"],
+    ["Dschungel",    "Tundra"],
+    ["Münze",        "Briefmarke"],
+    ["Löffel",       "Schere"],
+    ["Schwert",      "Keule"],
+    ["Ritter",       "Pirat"],
+    ["Biene",        "Ameise"],
+    ["Kino",         "Stadion"],
+    ["Schneemann",   "Sandburg"],
+    ["Diamant",      "Muschel"],
+    ["Vulkan",       "Geysir"],
+    ["Ballon",       "Drachen"],
+    ["Schlange",     "Wurm"],
+    ["Pinguin",      "Eisbär"],
+    ["Zug",          "Straßenbahn"],
+    ["Käse",         "Marmelade"],
+    ["Hut",          "Schal"],
+    ["Rakete",       "U-Boot"],
+  ]
+};
 
 // ── State ──
-let players = [];
+let lang = localStorage.getItem('impostor-lang') || 'es';
+let players = JSON.parse(localStorage.getItem('impostor-players') || '[]');
 let revealIndex = 0;
 let currentWord = null;
 let currentHint = null;
 let impostorName = null;
 let eliminated = [];
-let roundNum = 1;
+let pendingEject = null;
 
 // ── Helpers ──
 const $ = id => document.getElementById(id);
+const t = key => T[lang][key] || key;
+
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
@@ -402,6 +555,31 @@ function shuffle(arr) {
   }
   return a;
 }
+function savePlayers() {
+  localStorage.setItem('impostor-players', JSON.stringify(players));
+}
+
+// ── Language ──
+function applyLang() {
+  document.documentElement.lang = lang;
+  $('lang-toggle').textContent = lang === 'es' ? 'DE' : 'ES';
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const key = el.dataset.t;
+    const val = T[lang][key];
+    if (val && typeof val === 'string') el.textContent = val;
+  });
+  document.querySelectorAll('[data-t-placeholder]').forEach(el => {
+    const key = el.dataset.tPlaceholder;
+    const val = T[lang][key];
+    if (val) el.placeholder = val;
+  });
+  localStorage.setItem('impostor-lang', lang);
+}
+
+$('lang-toggle').onclick = function() {
+  lang = lang === 'es' ? 'de' : 'es';
+  applyLang();
+};
 
 // ── Setup ──
 function renderPlayerList() {
@@ -427,25 +605,24 @@ function addPlayer() {
   }
   players.push(val);
   $('name-input').value = '';
+  savePlayers();
   renderPlayerList();
 }
 
 window.removePlayer = function(i) {
   players.splice(i, 1);
+  savePlayers();
   renderPlayerList();
 };
 
 // ── Start Game ──
 $('start-btn').onclick = function() {
-  // Pick random word pair
-  const pair = WORDS[Math.floor(Math.random() * WORDS.length)];
+  const wordList = WORDS[lang];
+  const pair = wordList[Math.floor(Math.random() * wordList.length)];
   currentWord = pair[0];
   currentHint = pair[1];
-
-  // Pick random impostor
-  const shuffled = shuffle(players.filter(p => !eliminated.includes(p)));
-  impostorName = shuffled[0];
-
+  impostorName = shuffle(players)[0];
+  eliminated = [];
   revealIndex = 0;
   showCover();
 };
@@ -454,7 +631,6 @@ $('start-btn').onclick = function() {
 function showCover() {
   const alive = players.filter(p => !eliminated.includes(p));
   if (revealIndex >= alive.length) {
-    // All revealed → show random starting player
     const starter = alive[Math.floor(Math.random() * alive.length)];
     $('so-name').textContent = starter;
     const overlay = $('start-overlay');
@@ -467,7 +643,7 @@ function showCover() {
     return;
   }
   const name = alive[revealIndex];
-  $('cover-name').textContent = name + ' ist dran';
+  $('cover-name').textContent = name;
   const cover = $('cover');
   cover.classList.remove('hidden');
   cover.onclick = function() {
@@ -481,19 +657,19 @@ function showReveal(name) {
   show('screen-reveal');
   const isImpostor = name === impostorName;
   $('reveal-name').textContent = name;
-  $('reveal-sub').textContent = 'Dein Wort:';
+  $('reveal-sub').textContent = t('reveal-sub');
 
   if (isImpostor) {
-    $('reveal-word-label').textContent = '⚠ Achtung — du bist der Impostor! Dein Hinweis:';
+    $('reveal-word-label').textContent = t('reveal-impostor-label');
     $('reveal-word').textContent = currentHint;
     $('reveal-word').className = 'big-word impostor';
-    $('reveal-badge').textContent = '🔪 Impostor';
+    $('reveal-badge').textContent = t('badge-impostor');
     $('reveal-badge').className = 'role-badge impostor';
   } else {
-    $('reveal-word-label').textContent = 'Das echte Wort:';
+    $('reveal-word-label').textContent = t('reveal-crewmate-label');
     $('reveal-word').textContent = currentWord;
     $('reveal-word').className = 'big-word real';
-    $('reveal-badge').textContent = '👷 Crewmate';
+    $('reveal-badge').textContent = t('badge-crewmate');
     $('reveal-badge').className = 'role-badge crewmate';
   }
 }
@@ -523,11 +699,9 @@ function buildVoteGrid() {
 }
 
 // ── Confirm modal ──
-let pendingEject = null;
-
 function confirmEject(name) {
   pendingEject = name;
-  $('confirm-text').textContent = `Willst du wirklich ${name} rauswerfen?`;
+  $('confirm-text').textContent = T[lang]['confirm-msg'](name);
   $('confirm-modal').classList.remove('hidden');
 }
 
@@ -549,19 +723,17 @@ function ejectPlayer(name) {
 
   if (isImpostor) {
     $('eject-emoji').textContent = '🎉';
-    $('eject-title').textContent = `${name} wurde erwischt!`;
+    $('eject-title').textContent = T[lang]['caught'](name);
     $('eject-title').className = 'result-title win';
-    $('eject-info').textContent = `${name} war der Impostor!\n\nDas echte Wort war: ${currentWord}\nSein Hinweis war: ${currentHint}`;
+    $('eject-info').textContent = T[lang]['was-impostor'](name, currentWord, currentHint);
     $('next-round-btn').style.display = 'none';
     setTimeout(() => triggerGameOver('crew'), 100);
   } else {
     $('eject-emoji').textContent = '😬';
-    $('eject-title').textContent = `${name} war unschuldig!`;
+    $('eject-title').textContent = T[lang]['innocent'](name);
     $('eject-title').className = 'result-title lose';
-    $('eject-info').textContent = `${name} war ein Crewmate...\n\nDer Impostor (${impostorName}) ist noch unter euch!\nDas Wort bleibt dasselbe — weiter diskutieren!`;
+    $('eject-info').textContent = T[lang]['was-crewmate'](name, impostorName);
     eliminated.push(name);
-
-    // Check if impostor wins (only 1 crewmate left besides impostor)
     const aliveAfter = players.filter(p => !eliminated.includes(p));
     if (aliveAfter.length <= 2) {
       $('next-round-btn').style.display = 'none';
@@ -584,30 +756,29 @@ function triggerGameOver(winner) {
   show('screen-gameover');
   if (winner === 'crew') {
     $('go-emoji').textContent = '🎉';
-    $('go-title').textContent = 'Crewmates gewinnen!';
+    $('go-title').textContent = t('crew-wins');
     $('go-title').className = 'result-title win';
-    $('go-info').textContent = `Ihr habt den Impostor gefunden!\n\nDas Wort war: ${currentWord}\nImpostor: ${impostorName}`;
+    $('go-info').textContent = T[lang]['crew-wins-info'](currentWord, impostorName);
   } else {
     $('go-emoji').textContent = '💀';
-    $('go-title').textContent = `${impostorName} gewinnt!`;
+    $('go-title').textContent = T[lang]['imp-wins'](impostorName);
     $('go-title').className = 'result-title lose';
-    $('go-info').textContent = `Der Impostor hat gewonnen!\n\nDas Wort war: ${currentWord}\nDer Hinweis war: ${currentHint}`;
+    $('go-info').textContent = T[lang]['imp-wins-info'](currentWord, currentHint);
   }
 }
 
 // ── New Game ──
 function resetGame() {
-  players = [];
   eliminated = [];
-  roundNum = 1;
   revealIndex = 0;
-  renderPlayerList();
   show('screen-setup');
 }
 
 $('new-game-btn').onclick  = resetGame;
 $('new-game-btn2').onclick = resetGame;
 
+// Init
+applyLang();
 renderPlayerList();
 </script>
 </body>
