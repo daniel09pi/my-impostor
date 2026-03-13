@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Impostor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px 16px;
+    }
+    .screen.active { display: flex; }
+
+    h1 { font-size: 2.4rem; color: #e94560; letter-spacing: 2px; text-transform: uppercase; }
+    h2 { font-size: 1.4rem; color: #a8dadc; }
+    p  { text-align: center; line-height: 1.6; color: #ccc; }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #16213e;
+      color: #eee;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input[type="text"]:focus { border-color: #e94560; }
+
+    .btn {
+      padding: 12px 32px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform .1s, opacity .2s;
+    }
+    .btn:active { transform: scale(.96); }
+    .btn-red   { background: #e94560; color: #fff; }
+    .btn-blue  { background: #457b9d; color: #fff; }
+    .btn-green { background: #2a9d8f; color: #fff; }
+    .btn-gray  { background: #333; color: #aaa; }
+    .btn:disabled { opacity: .4; cursor: default; }
+
+    /* Player list in setup */
+    #player-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .player-tag {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #16213e;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .player-tag span { font-size: .95rem; }
+    .player-tag button {
+      background: none;
+      border: none;
+      color: #e94560;
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .impostor-count-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: .95rem;
+      color: #aaa;
+    }
+    .impostor-count-row button {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 2px solid #555;
+      background: #16213e;
+      color: #eee;
+      font-size: 1.2rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    #impostor-num { font-size: 1.3rem; font-weight: bold; color: #e94560; min-width: 20px; text-align: center; }
+
+    /* Role reveal card */
+    .role-card {
+      width: 100%;
+      background: #16213e;
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      border: 2px solid #333;
+    }
+    .role-card .player-name {
+      font-size: 1.6rem;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .role-card .sub { font-size: .85rem; color: #777; margin-bottom: 24px; }
+    .role-emoji { font-size: 5rem; line-height: 1; margin-bottom: 12px; }
+    .role-label {
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+    .role-label.impostor { color: #e94560; }
+    .role-label.crewmate { color: #2a9d8f; }
+    .role-desc { margin-top: 10px; font-size: .9rem; color: #aaa; }
+
+    /* Cover overlay */
+    #cover {
+      position: fixed;
+      inset: 0;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    #cover.hidden { display: none; }
+    #cover h2 { font-size: 1.2rem; color: #aaa; }
+    #cover .tap-hint { font-size: .85rem; color: #555; }
+
+    /* Voting screen */
+    #vote-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .vote-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #16213e;
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+    .vote-row .vname { font-size: 1rem; }
+    .vote-row .vcount { font-size: .85rem; color: #aaa; min-width: 60px; text-align: right; }
+    .vote-row .vote-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: none;
+      background: #e94560;
+      color: #fff;
+      font-size: .85rem;
+      cursor: pointer;
+    }
+    .vote-row .vote-btn:disabled { background: #333; color: #555; cursor: default; }
+    .vote-row.eliminated { opacity: .4; }
+    .vote-row.eliminated .vname { text-decoration: line-through; }
+
+    /* Result screen */
+    .result-box {
+      background: #16213e;
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      width: 100%;
+    }
+    .result-emoji { font-size: 4rem; margin-bottom: 12px; }
+    .result-title { font-size: 1.6rem; font-weight: bold; margin-bottom: 8px; }
+    .result-title.win  { color: #2a9d8f; }
+    .result-title.lose { color: #e94560; }
+    .result-info { font-size: .9rem; color: #aaa; line-height: 1.6; }
+
+    .row { display: flex; gap: 12px; }
+    .small { font-size: .8rem; color: #666; }
+  </style>
+</head>
+<body>
+
+<!-- ─── SCREEN 1: Setup ─── -->
+<div class="screen active" id="screen-setup">
+  <h1>Impostor</h1>
+  <p>Gebt eure Namen ein und startet das Spiel.</p>
+
+  <div style="width:100%;display:flex;gap:8px;">
+    <input type="text" id="name-input" placeholder="Spielername..." maxlength="20" />
+    <button class="btn btn-red" id="add-btn">+</button>
+  </div>
+
+  <div id="player-list"></div>
+
+  <div class="impostor-count-row">
+    <span>Impostors:</span>
+    <button id="imp-minus">−</button>
+    <span id="impostor-num">1</span>
+    <button id="imp-plus">+</button>
+  </div>
+
+  <button class="btn btn-green" id="start-btn" disabled>Spiel starten</button>
+  <p class="small">Mindestens 4 Spieler benötigt.</p>
+</div>
+
+<!-- ─── SCREEN 2: Role Reveal ─── -->
+<div class="screen" id="screen-reveal">
+  <h2 id="reveal-title">Rollen aufdecken</h2>
+  <p id="reveal-sub"></p>
+  <div class="role-card" id="role-card">
+    <div class="player-name" id="reveal-name"></div>
+    <div class="sub">deine Rolle:</div>
+    <div class="role-emoji" id="reveal-emoji"></div>
+    <div class="role-label" id="reveal-label"></div>
+    <div class="role-desc" id="reveal-desc"></div>
+  </div>
+  <button class="btn btn-blue" id="next-reveal-btn">Weiter →</button>
+</div>
+
+<!-- ─── SCREEN 3: Voting ─── -->
+<div class="screen" id="screen-vote">
+  <h2>Abstimmung</h2>
+  <p>Diskutiert kurz, dann stimmt ab. Wer bekommt die meisten Stimmen?</p>
+  <p id="vote-round-info" style="font-size:.85rem;color:#e94560;"></p>
+  <div id="vote-list"></div>
+  <p class="small" id="vote-hint">Jeder darf einmal abstimmen (oder auf Enthaltung klicken).</p>
+  <button class="btn btn-red" id="tally-btn" disabled>Ergebnis zeigen</button>
+</div>
+
+<!-- ─── SCREEN 4: Ejection Result ─── -->
+<div class="screen" id="screen-eject">
+  <h2>Ausgeworfen!</h2>
+  <div class="result-box">
+    <div class="result-emoji" id="eject-emoji">🚀</div>
+    <div class="result-title" id="eject-title"></div>
+    <div class="result-info" id="eject-info"></div>
+  </div>
+  <button class="btn btn-blue" id="continue-btn">Weiter spielen</button>
+  <button class="btn btn-gray" id="new-game-btn2">Neues Spiel</button>
+</div>
+
+<!-- ─── SCREEN 5: Game Over ─── -->
+<div class="screen" id="screen-gameover">
+  <h1>Game Over</h1>
+  <div class="result-box">
+    <div class="result-emoji" id="go-emoji"></div>
+    <div class="result-title" id="go-title"></div>
+    <div class="result-info" id="go-info"></div>
+  </div>
+  <button class="btn btn-green" id="new-game-btn">Neues Spiel</button>
+</div>
+
+<!-- Cover between reveals -->
+<div id="cover" class="hidden">
+  <h2 id="cover-name"></h2>
+  <p>Tippe um deine Rolle zu sehen</p>
+  <p class="tap-hint">(andere wegschauen!)</p>
+</div>
+
+<script>
+  // ── State ──
+  let players = [];      // { name, role, eliminated, votes }
+  let impostorCount = 1;
+  let revealIndex = 0;
+  let votes = {};        // voterName -> targetName
+  let hasVoted = new Set();
+  let roundNum = 1;
+
+  // ── Helpers ──
+  const $ = id => document.getElementById(id);
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // ── Setup ──
+  function renderPlayerList() {
+    const list = $('player-list');
+    list.innerHTML = '';
+    players.forEach((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'player-tag';
+      div.innerHTML = `<span>${p.name}</span><button onclick="removePlayer(${i})">✕</button>`;
+      list.appendChild(div);
+    });
+    $('start-btn').disabled = players.length < 4;
+    // Clamp impostor count
+    const max = Math.floor(players.length / 2);
+    if (impostorCount > max) { impostorCount = Math.max(1, max); }
+    $('impostor-num').textContent = impostorCount;
+  }
+
+  $('add-btn').onclick = addPlayer;
+  $('name-input').addEventListener('keydown', e => { if (e.key === 'Enter') addPlayer(); });
+
+  function addPlayer() {
+    const val = $('name-input').value.trim();
+    if (!val) return;
+    if (players.find(p => p.name.toLowerCase() === val.toLowerCase())) {
+      $('name-input').value = ''; return;
+    }
+    players.push({ name: val, role: null, eliminated: false, votes: 0 });
+    $('name-input').value = '';
+    renderPlayerList();
+  }
+
+  window.removePlayer = function(i) {
+    players.splice(i, 1);
+    renderPlayerList();
+  };
+
+  $('imp-minus').onclick = () => { if (impostorCount > 1) { impostorCount--; $('impostor-num').textContent = impostorCount; } };
+  $('imp-plus').onclick  = () => {
+    const max = Math.floor(players.length / 2);
+    if (impostorCount < max) { impostorCount++; $('impostor-num').textContent = impostorCount; }
+  };
+
+  // ── Start Game ──
+  $('start-btn').onclick = function() {
+    // Assign roles
+    const indices = shuffle([...Array(players.length).keys()]);
+    players.forEach((p, i) => {
+      p.role = indices.indexOf(i) < impostorCount ? 'impostor' : 'crewmate';
+      p.eliminated = false;
+    });
+    revealIndex = 0;
+    roundNum = 1;
+    showCover();
+  };
+
+  // ── Cover ──
+  function showCover() {
+    if (revealIndex >= players.length) {
+      // All revealed → go to voting
+      show('screen-vote');
+      buildVoteScreen();
+      return;
+    }
+    const cover = $('cover');
+    $('cover-name').textContent = players[revealIndex].name + ' ist dran';
+    cover.classList.remove('hidden');
+    cover.onclick = function() {
+      cover.classList.add('hidden');
+      showReveal(revealIndex);
+    };
+  }
+
+  // ── Reveal ──
+  function showReveal(i) {
+    const p = players[i];
+    show('screen-reveal');
+    $('reveal-name').textContent = p.name;
+    $('reveal-sub').textContent = `Spieler ${i + 1} von ${players.length}`;
+    if (p.role === 'impostor') {
+      $('reveal-emoji').textContent = '🔪';
+      $('reveal-label').textContent = 'Impostor';
+      $('reveal-label').className = 'role-label impostor';
+      $('reveal-desc').textContent = 'Du bist der Feind. Vertusche dich — bring die Crewmates dazu, jemand anderen rauszuschmeißen!';
+    } else {
+      $('reveal-emoji').textContent = '👷';
+      $('reveal-label').textContent = 'Crewmate';
+      $('reveal-label').className = 'role-label crewmate';
+      $('reveal-desc').textContent = 'Du bist unschuldig. Finde den Impostor — und lass dich nicht täuschen!';
+    }
+  }
+
+  $('next-reveal-btn').onclick = function() {
+    revealIndex++;
+    showCover();
+  };
+
+  // ── Voting ──
+  function buildVoteScreen() {
+    votes = {};
+    hasVoted.clear();
+    $('vote-round-info').textContent = `Runde ${roundNum}`;
+
+    const alive = players.filter(p => !p.eliminated);
+    const list = $('vote-list');
+    list.innerHTML = '';
+
+    alive.forEach(target => {
+      const row = document.createElement('div');
+      row.className = 'vote-row';
+      row.id = 'vrow-' + target.name;
+      row.innerHTML = `
+        <span class="vname">${target.name}</span>
+        <span class="vcount" id="vc-${target.name}">0 Stimmen</span>
+        <button class="vote-btn" id="vbtn-${target.name}">Wählen</button>
+      `;
+      list.appendChild(row);
+    });
+
+    // Abstain row
+    const abstainRow = document.createElement('div');
+    abstainRow.className = 'vote-row';
+    abstainRow.innerHTML = `
+      <span class="vname" style="color:#777;">Enthaltung</span>
+      <span class="vcount"></span>
+      <button class="vote-btn" id="vbtn-abstain" style="background:#555;">Enthaltung</button>
+    `;
+    list.appendChild(abstainRow);
+
+    // Wire up vote buttons — each click = one voter votes
+    // We don't know who's clicking, so we track by click order (each alive player votes once)
+    // We'll use a queue approach: current voter is shown at top
+    renderVotePrompt(alive, 0);
+  }
+
+  function renderVotePrompt(alive, voterIdx) {
+    if (voterIdx >= alive.length) {
+      // all voted
+      $('tally-btn').disabled = false;
+      $('vote-hint').textContent = 'Alle haben abgestimmt. Ergebnis anzeigen!';
+      // disable all buttons
+      alive.forEach(t => {
+        const btn = $('vbtn-' + t.name);
+        if (btn) btn.disabled = true;
+      });
+      const ab = $('vbtn-abstain');
+      if (ab) ab.disabled = true;
+      return;
+    }
+
+    const voter = alive[voterIdx];
+    $('vote-hint').textContent = `➡ ${voter.name}, wähle jetzt (oder enthalt dich):`;
+
+    alive.forEach(target => {
+      const btn = $('vbtn-' + target.name);
+      if (!btn) return;
+      btn.disabled = (target.name === voter.name); // can't vote for self
+      btn.onclick = () => castVote(voter.name, target.name, alive, voterIdx);
+    });
+
+    const abstainBtn = $('vbtn-abstain');
+    if (abstainBtn) {
+      abstainBtn.disabled = false;
+      abstainBtn.onclick = () => castVote(voter.name, null, alive, voterIdx);
+    }
+  }
+
+  function castVote(voter, target, alive, voterIdx) {
+    if (target) {
+      votes[voter] = target;
+      const curr = parseInt($('vc-' + target).textContent) || 0;
+      $('vc-' + target).textContent = (curr + 1) + ' Stimme' + (curr + 1 === 1 ? '' : 'n');
+    }
+    renderVotePrompt(alive, voterIdx + 1);
+  }
+
+  $('tally-btn').onclick = function() {
+    // Count votes
+    const tally = {};
+    Object.values(votes).forEach(t => { tally[t] = (tally[t] || 0) + 1; });
+
+    let maxVotes = 0;
+    let ejected = null;
+    let tie = false;
+
+    Object.entries(tally).forEach(([name, count]) => {
+      if (count > maxVotes) { maxVotes = count; ejected = name; tie = false; }
+      else if (count === maxVotes) { tie = true; }
+    });
+
+    if (tie || !ejected) {
+      showEjectScreen(null, 0);
+    } else {
+      const p = players.find(pl => pl.name === ejected);
+      p.eliminated = true;
+      showEjectScreen(p, maxVotes);
+    }
+  };
+
+  // ── Eject Screen ──
+  function showEjectScreen(player, voteCount) {
+    show('screen-eject');
+    if (!player) {
+      $('eject-emoji').textContent = '🤷';
+      $('eject-title').textContent = 'Unentschieden!';
+      $('eject-title').className = 'result-title';
+      $('eject-info').textContent = 'Niemand wurde ausgeworfen. Die Diskussion geht weiter...';
+    } else {
+      const isImp = player.role === 'impostor';
+      $('eject-emoji').textContent = isImp ? '🔪' : '👷';
+      $('eject-title').textContent = `${player.name} wurde ausgeworfen!`;
+      $('eject-title').className = 'result-title ' + (isImp ? 'win' : 'lose');
+      $('eject-info').textContent = isImp
+        ? `${player.name} war tatsächlich ein Impostor! (${voteCount} Stimmen)`
+        : `${player.name} war ein Crewmate... (${voteCount} Stimmen)\nFalsche Entscheidung!`;
+    }
+
+    // Check win condition
+    const alive = players.filter(p => !p.eliminated);
+    const aliveImpostors  = alive.filter(p => p.role === 'impostor').length;
+    const aliveCrewmates  = alive.filter(p => p.role === 'crewmate').length;
+
+    if (aliveImpostors === 0) {
+      $('continue-btn').style.display = 'none';
+      $('new-game-btn2').style.display = 'none';
+      // show game over after short delay via button
+      $('continue-btn').style.display = 'none';
+      setTimeout(() => triggerGameOver('crew'), 1800);
+    } else if (aliveImpostors >= aliveCrewmates) {
+      $('continue-btn').style.display = 'none';
+      setTimeout(() => triggerGameOver('imp'), 1800);
+    } else {
+      $('continue-btn').style.display = '';
+      $('new-game-btn2').style.display = '';
+    }
+  }
+
+  function triggerGameOver(winner) {
+    show('screen-gameover');
+    if (winner === 'crew') {
+      $('go-emoji').textContent = '🎉';
+      $('go-title').textContent = 'Crewmates gewinnen!';
+      $('go-title').className = 'result-title win';
+      const imps = players.filter(p => p.role === 'impostor').map(p => p.name).join(', ');
+      $('go-info').textContent = `Alle Impostors wurden gefunden!\nImpostor(s): ${imps}`;
+    } else {
+      $('go-emoji').textContent = '💀';
+      $('go-title').textContent = 'Impostors gewinnen!';
+      $('go-title').className = 'result-title lose';
+      const imps = players.filter(p => p.role === 'impostor').map(p => p.name).join(', ');
+      $('go-info').textContent = `Die Impostors haben die Kontrolle übernommen!\nImpostor(s) waren: ${imps}`;
+    }
+  }
+
+  $('continue-btn').onclick = function() {
+    roundNum++;
+    show('screen-vote');
+    buildVoteScreen();
+  };
+
+  $('new-game-btn').onclick  = resetGame;
+  $('new-game-btn2').onclick = resetGame;
+
+  function resetGame() {
+    players = [];
+    impostorCount = 1;
+    revealIndex = 0;
+    roundNum = 1;
+    $('tally-btn').disabled = true;
+    $('continue-btn').style.display = '';
+    $('new-game-btn2').style.display = '';
+    renderPlayerList();
+    show('screen-setup');
+  }
+
+  // Init
+  renderPlayerList();
+</script>
+</body>
+</html>
